@@ -39,7 +39,7 @@ Music Locker is a PHP-based web application that allows users to create and mana
 
 ## 🌐 Live Demo
 
-**GitHub Pages URL**: [MusicLocker GitHub Pages]([#](https://sanabiot21.github.io/MusicLocker-PHP/))
+**GitHub Pages URL**: [MusicLocker GitHub Pages](https://sanabiot21.github.io/MusicLocker-PHP/)
 
 ## 🛠️ Technologies Used
 
