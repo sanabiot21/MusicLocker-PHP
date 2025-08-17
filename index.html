@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Locker - Your Personal Music Repository</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kode+Mono:wght@400..700&family=Titillium+Web:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700&display=swap" rel="stylesheet">
+    
+    <!-- Custom Dark Techno Theme -->
+    <link rel="stylesheet" href="assets/css/dark-techno-theme.css">
+</head>
+<body class="bg-pattern">
+    <!-- Skip to main content link for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark-techno fixed-top" data-bs-theme="dark">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="bi bi-music-note-beamed me-2"></i>Music Locker
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="index.html">
+                            <i class="bi bi-house me-1"></i>Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="register.html">
+                            <i class="bi bi-person-plus me-1"></i>Register
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="login.html">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>Login
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <main id="main-content">
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 hero-content">
+                    <h1 class="hero-title">Your Personal Music Universe</h1>
+                    <p class="hero-subtitle">
+                        Create and manage your personal music catalog without relying on external streaming platforms. 
+                        Discover, organize, and cherish your musical journey in a private, distraction-free environment.
+                    </p>
+                    <div class="d-flex flex-column flex-md-row gap-3">
+                        <a href="register.html" class="btn btn-glow btn-lg px-4 py-3">
+                            <i class="bi bi-rocket-takeoff me-2"></i>Get Started
+                        </a>
+                        <a href="#features" class="btn btn-outline-glow btn-lg px-4 py-3">
+                            <i class="bi bi-info-circle me-2"></i>Learn More
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <div class="hero-image">
+                        <img src="assets/img/vinyl-record.svg" alt="Vinyl Record" class="img-fluid pulse-glow" style="max-width: 300px; width: 100%;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5">
+        <div class="container">
+            <div class="row mb-5">
+                <div class="col-lg-8 mx-auto text-center">
+                    <h2 class="display-4 mb-4" style="background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                        Why Choose Music Locker?
+                    </h2>
+                    <p class="lead text-muted">
+                        Built for music enthusiasts who want to maintain a personal record of their musical journey
+                    </p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card text-center">
+                        <div class="feature-icon">
+                            <i class="bi bi-shield-lock"></i>
+                        </div>
+                        <h4 class="feature-title">Private & Secure</h4>
+                        <p class="feature-description">
+                            Your music catalog is completely private. No algorithms, no external interference - 
+                            just your personal musical space.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card text-center">
+                        <div class="feature-icon">
+                            <i class="bi bi-collection"></i>
+                        </div>
+                        <h4 class="feature-title">Organize Your Collection</h4>
+                        <p class="feature-description">
+                            Add songs, albums, and create custom mood tags. Keep personal notes and memories 
+                            associated with your favorite tracks.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card text-center">
+                        <div class="feature-icon">
+                            <i class="bi bi-search"></i>
+                        </div>
+                        <h4 class="feature-title">Smart Discovery</h4>
+                        <p class="feature-description">
+                            Search and filter your collection by artist, album, genre, or mood. 
+                            Find the perfect song for any moment.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card text-center">
+                        <div class="feature-icon">
+                            <i class="bi bi-tags"></i>
+                        </div>
+                        <h4 class="feature-title">Custom Mood Tags</h4>
+                        <p class="feature-description">
+                            Create personalized tags to categorize music by mood, occasion, or any 
+                            criteria that matters to you.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card text-center">
+                        <div class="feature-icon">
+                            <i class="bi bi-phone"></i>
+                        </div>
+                        <h4 class="feature-title">Mobile Responsive</h4>
+                        <p class="feature-description">
+                            Access your music collection from any device. Responsive design ensures 
+                            a seamless experience across all screen sizes.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card text-center">
+                        <div class="feature-icon">
+                            <i class="bi bi-download"></i>
+                        </div>
+                        <h4 class="feature-title">Export Your Data</h4>
+                        <p class="feature-description">
+                            Your data belongs to you. Export your entire collection for personal 
+                            backup whenever you need it.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="py-5 bg-secondary-dark">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-md-3 col-6 mb-4">
+                    <div class="h2 text-primary">
+                        <i class="bi bi-music-note display-6" style="color: var(--accent-blue);"></i>
+                    </div>
+                    <h3 class="display-6 fw-bold" style="color: var(--accent-blue);">∞</h3>
+                    <p class="text-muted">Songs to Discover</p>
+                </div>
+                <div class="col-md-3 col-6 mb-4">
+                    <div class="h2 text-primary">
+                        <i class="bi bi-collection display-6" style="color: var(--accent-purple);"></i>
+                    </div>
+                    <h3 class="display-6 fw-bold" style="color: var(--accent-purple);">∞</h3>
+                    <p class="text-muted">Albums to Collect</p>
+                </div>
+                <div class="col-md-3 col-6 mb-4">
+                    <div class="h2 text-primary">
+                        <i class="bi bi-tags display-6" style="color: var(--accent-blue);"></i>
+                    </div>
+                    <h3 class="display-6 fw-bold" style="color: var(--accent-blue);">∞</h3>
+                    <p class="text-muted">Custom Tags</p>
+                </div>
+                <div class="col-md-3 col-6 mb-4">
+                    <div class="h2 text-primary">
+                        <i class="bi bi-heart display-6" style="color: var(--accent-purple);"></i>
+                    </div>
+                    <h3 class="display-6 fw-bold" style="color: var(--accent-purple);">∞</h3>
+                    <p class="text-muted">Musical Memories</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto text-center">
+                    <h2 class="display-5 mb-4">Ready to Start Your Musical Journey?</h2>
+                    <p class="lead mb-4 text-muted">
+                        Join Music Locker today and create your personalized music universe. 
+                        No subscriptions, no algorithms - just you and your music.
+                    </p>
+                    <a href="register.html" class="btn btn-glow btn-lg px-5 py-3">
+                        <i class="bi bi-person-plus me-2"></i>Create Your Account
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer-dark">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="text-center">
+                        <h5 class="mb-3">
+                            <i class="bi bi-music-note-beamed me-2" style="color: var(--accent-blue);"></i>
+                            Music Locker
+                        </h5>
+                        <p class="text-muted mb-3">
+                            Your personalized music and albums repository. 
+                            Organize, discover, and cherish your musical journey.
+                        </p>
+                        <div class="d-flex justify-content-center gap-3 mb-3">
+                            <a href="index.html" class="text-muted text-decoration-none">Home</a>
+                            <a href="register.html" class="text-muted text-decoration-none">Register</a>
+                            <a href="login.html" class="text-muted text-decoration-none">Login</a>
+                            <a href="forgot.html" class="text-muted text-decoration-none">Forgot Password</a>
+                        </div>
+                        <hr class="my-4" style="border-color: #333;">
+                        <p class="text-muted small mb-2">
+                            &copy; 2025 Music Locker. Built with <i class="bi bi-heart-fill text-danger"></i> for music enthusiasts.
+                        </p>
+                        <p class="text-muted small">
+                            Developed by: 
+                            <a href="https://www.facebook.com/reyyyy.naldooo" target="_blank" class="text-decoration-none" style="color: var(--accent-blue);">Reynaldo D. Grande Jr. II</a>, 
+                            <a href="https://www.facebook.com/louis.jansen.letigio.2024" target="_blank" class="text-decoration-none" style="color: var(--accent-blue);">Louis Jansen G. Letigio</a>, 
+                            <a href="https://www.facebook.com/shawn.dayanan" target="_blank" class="text-decoration-none" style="color: var(--accent-blue);">Shawn Patrick R. Dayanan</a>, 
+                            <a href="https://www.facebook.com/uzyx2" target="_blank" class="text-decoration-none" style="color: var(--accent-blue);">Euzyk Kendyl Dayanan</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+</body>
+</html>
