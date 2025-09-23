@@ -1,0 +1,126 @@
+# Music Locker - Security & Environment Files
+
+# Sensitive Configuration Files (contains API keys and DB credentials)
+config/database.php
+config/spotify.php
+config/app.php
+config/config.php
+.env
+.env.local
+.env.production
+
+# API Keys & Secrets
+*.key
+*.secret
+api-keys.txt
+credentials.json
+
+# Database Files
+*.sqlite
+*.db
+database/*.sqlite
+
+# Session Files
+sessions/
+tmp/
+temp/
+
+# Logs
+logs/
+*.log
+error.log
+access.log
+
+# Cache Files
+cache/
+*.cache
+.cache/
+
+# Composer
+vendor/
+composer.lock
+
+# IDE & Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Development Tools
+phpunit.xml
+.phpunit.result.cache
+coverage/
+
+# Additional Development Files
+*.bak
+backup/
+backups/
+.vscode/settings.json
+.vscode/launch.json
+
+# Local development overrides
+local.php
+development.php
+
+# Node.js (if frontend build tools are added later)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# OS Generated Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# PHP Specific
+*.php~
+.php_cs.cache
+.php-cs-fixer.cache
+*.phpunit.result.cache
+.psalm/cache/
+.phpstan/cache/
+
+# Backup files from editors
+*.php.backup
+*.backup
+
+# XAMPP Specific
+xampp/
+htdocs/
+
+# Test Files (except essential ones)
+test-*.html
+*-test.html
+testing/
+tests-private/
+
+# Keep Essential Test Files
+!test-db.php
+!check-environment.php
+
+# User Uploads (when implemented)
+uploads/
+public/uploads/
+user-content/
+
+# Email Templates (sensitive)
+email-templates/private/
+
+# Documentation Drafts
+docs/draft/
+docs/private/
+
+# Local Configuration Overrides
+local-config.php
+config-local.php
+settings-local.php

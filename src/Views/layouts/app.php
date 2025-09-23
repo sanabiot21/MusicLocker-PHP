@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= htmlspecialchars($title ?? 'Music Locker') ?></title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kode+Mono:wght@400..700&family=Titillium+Web:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700&display=swap" rel="stylesheet">
+    
+    <!-- Custom Dark Techno Theme -->
+    <?php
+    // Simple HTTPS URL construction for Ngrok compatibility
+    $isNgrok = isset($_SERVER['HTTP_HOST']) && (str_contains($_SERVER['HTTP_HOST'], '.ngrok') || str_contains($_SERVER['HTTP_HOST'], 'ngrok-free.app'));
+    $protocol = $isNgrok ? 'https' : ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http');
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $cssUrl = $protocol . '://' . $host . '/assets/css/dark-techno-theme.css';
+    ?>
+    <link rel="stylesheet" href="<?= $cssUrl ?>">
+    
+    <?= $additional_css ?? '' ?>
+</head>
+<body class="bg-pattern">
+    <!-- Skip to main content link for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark-techno fixed-top" data-bs-theme="dark">
+        <div class="container">
+            <a class="navbar-brand" href="<?= route_url('home') ?>">
+                <i class="bi bi-music-note-beamed me-2"></i>Music Locker
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <?php if ($is_logged_in): ?>
+                        <!-- Authenticated Navigation -->
+                        <li class="nav-item">
+                            <a class="nav-link <?= $current_page === 'dashboard' ? 'active' : '' ?>" href="<?= route_url('dashboard') ?>">
+                                <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?= $current_page === 'music' ? 'active' : '' ?>" href="<?= route_url('music.index') ?>">
+                                <i class="bi bi-music-note-list me-1"></i>My Music
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-circle me-1"></i><?= htmlspecialchars(explode(' ', $user_name ?? 'User')[0]) ?>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-dark">
+                                <li><a class="dropdown-item" href="<?= route_url('profile') ?>">
+                                    <i class="bi bi-person me-2"></i>Profile
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="<?= route_url('logout') ?>">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                </a></li>
+                            </ul>
+                        </li>
+                    <?php else: ?>
+                        <!-- Guest Navigation -->
+                        <li class="nav-item">
+                            <a class="nav-link <?= $current_page === 'home' ? 'active' : '' ?>" href="<?= route_url('home') ?>">
+                                <i class="bi bi-house me-1"></i>Home
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?= $current_page === 'register' ? 'active' : '' ?>" href="<?= route_url('register') ?>">
+                                <i class="bi bi-person-plus me-1"></i>Register
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?= $current_page === 'login' ? 'active' : '' ?>" href="<?= route_url('login') ?>">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>Login
+                            </a>
+                        </li>
+                    <?php endif; ?>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <?php if (!empty($flash_messages)): ?>
+        <div class="container mt-5 pt-4">
+            <?php foreach ($flash_messages as $type => $message): ?>
+                <?php if ($type !== 'validation_errors' && $type !== 'old_input'): ?>
+                    <div class="alert alert-<?= $type === 'error' ? 'danger' : $type ?> alert-dismissible fade show" role="alert">
+                        <?php
+                        $icon = match($type) {
+                            'success' => 'bi-check-circle',
+                            'error', 'danger' => 'bi-exclamation-triangle',
+                            'warning' => 'bi-exclamation-circle',
+                            'info' => 'bi-info-circle',
+                            default => 'bi-info-circle'
+                        };
+                        ?>
+                        <i class="bi <?= $icon ?> me-2"></i>
+                        <?= htmlspecialchars($message) ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- Main Content -->
+    <main id="main-content" class="<?= $main_class ?? '' ?>">
+        <?= $main_content ?>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer-dark mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="text-center">
+                        <h5 class="mb-3">
+                            <i class="bi bi-music-note-beamed me-2" style="color: var(--accent-blue);"></i>
+                            Music Locker
+                        </h5>
+                        <p class="text-muted mb-3">
+                            Your personalized music and albums repository. 
+                            Organize, discover, and cherish your musical journey.
+                        </p>
+                        <div class="d-flex justify-content-center gap-3 mb-3">
+                            <a href="<?= route_url('home') ?>" class="text-muted text-decoration-none">Home</a>
+                            <?php if (!$is_logged_in): ?>
+                                <a href="<?= route_url('register') ?>" class="text-muted text-decoration-none">Register</a>
+                                <a href="<?= route_url('login') ?>" class="text-muted text-decoration-none">Login</a>
+                            <?php else: ?>
+                                <a href="<?= route_url('dashboard') ?>" class="text-muted text-decoration-none">Dashboard</a>
+                                <a href="<?= route_url('music.index') ?>" class="text-muted text-decoration-none">My Music</a>
+                            <?php endif; ?>
+                        </div>
+                        <hr class="my-4" style="border-color: #333;">
+                        <p class="text-muted small mb-2">
+                            &copy; 2025 Music Locker. Built with <i class="bi bi-heart-fill text-danger"></i> for music enthusiasts.
+                        </p>
+                        <p class="text-muted small">
+                            Developed by: 
+                            <a href="https://www.facebook.com/reyyyy.naldooo" target="_blank" class="text-decoration-none" style="color: var(--accent-blue);">Reynaldo D. Grande Jr. II</a>, 
+                            <a href="https://www.facebook.com/louis.jansen.letigio.2024" target="_blank" class="text-decoration-none" style="color: var(--accent-blue);">Louis Jansen G. Letigio</a>, 
+                            <a href="https://www.facebook.com/shawn.dayanan" target="_blank" class="text-decoration-none" style="color: var(--accent-blue);">Shawn Patrick R. Dayanan</a>, 
+                            <a href="https://www.facebook.com/uzyx2" target="_blank" class="text-decoration-none" style="color: var(--accent-blue);">Euzyk Kendyl Dayanan</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        // Auto-dismiss alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+        });
+
+        // Add spinning animation for loading states
+        const spinnerStyle = document.createElement('style');
+        spinnerStyle.textContent = `
+            .spin {
+                animation: spin 1s linear infinite;
+            }
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            .skip-link {
+                position: absolute;
+                top: -40px;
+                left: 6px;
+                background: var(--accent-blue);
+                color: #000;
+                padding: 8px;
+                text-decoration: none;
+                z-index: 100;
+            }
+            .skip-link:focus {
+                top: 6px;
+            }
+        `;
+        document.head.appendChild(spinnerStyle);
+        
+        // MusicLocker Utility Object
+        window.MusicLocker = {
+            // Show toast notification
+            showToast: function(message, type = 'info') {
+                // Create toast container if it doesn't exist
+                let container = document.getElementById('toast-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'toast-container';
+                    container.className = 'toast-container position-fixed top-0 end-0 p-3';
+                    container.style.zIndex = '1055';
+                    document.body.appendChild(container);
+                }
+                
+                // Create toast element
+                const toastId = 'toast-' + Date.now();
+                const toastHtml = `
+                    <div class="toast" id="${toastId}" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header bg-dark text-light border-secondary">
+                            <i class="bi bi-music-note-beamed me-2 text-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'info'}"></i>
+                            <strong class="me-auto">Music Locker</strong>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                        </div>
+                        <div class="toast-body bg-dark text-light">
+                            ${message}
+                        </div>
+                    </div>
+                `;
+                
+                container.insertAdjacentHTML('beforeend', toastHtml);
+                const toast = new bootstrap.Toast(document.getElementById(toastId));
+                toast.show();
+                
+                // Remove toast element after it's hidden
+                document.getElementById(toastId).addEventListener('hidden.bs.toast', function() {
+                    this.remove();
+                });
+            },
+            
+            // Show loading indicator (simple implementation)
+            showLoading: function(message = 'Loading...') {
+                // You can enhance this with a proper loading overlay
+                console.log('Loading:', message);
+                this.showToast(message, 'info');
+            },
+            
+            // AJAX utility function
+            ajax: function(url, options = {}) {
+                const defaultOptions = {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                };
+                
+                // Merge options
+                const config = Object.assign({}, defaultOptions, options);
+                
+                // Handle form data for POST requests
+                if (config.data && config.method !== 'GET') {
+                    if (config.data instanceof FormData) {
+                        delete config.headers['Content-Type'];
+                        config.body = config.data;
+                    } else {
+                        config.body = JSON.stringify(config.data);
+                    }
+                    delete config.data;
+                }
+                
+                return fetch(url, config)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .catch(error => {
+                        console.error('AJAX Error:', error);
+                        // Don't show toast for every error, let the caller handle it
+                        throw error;
+                    });
+            }
+        };
+    </script>
+    
+    <?= $additional_js ?? '' ?>
+</body>
+</html>

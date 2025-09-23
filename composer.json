@@ -1,0 +1,56 @@
+{
+    "name": "team-naturalstupidity/music-locker",
+    "description": "Personal music catalog management system with Spotify integration",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Team NaturalStupidity",
+            "email": "team@musiclocker.local"
+        }
+    ],
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require": {
+        "php": ">=8.2",
+        "ext-curl": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "ext-openssl": "*",
+        "ext-pdo": "*",
+        "ext-pdo_mysql": "*",
+        "vlucas/phpdotenv": "^5.5",
+        "monolog/monolog": "^3.4",
+        "phpmailer/phpmailer": "^6.8"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0",
+        "squizlabs/php_codesniffer": "^3.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "MusicLocker\\": "src/"
+        },
+        "files": [
+            "src/Utils/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "MusicLocker\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "cs-check": "phpcs src/ --standard=PSR12",
+        "cs-fix": "phpcbf src/ --standard=PSR12",
+        "serve": "php -S 127.0.0.1:8888 -t public"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    }
+}

@@ -1,0 +1,416 @@
+/**
+ * Music Collection CSS
+ * Music Locker - Team NaturalStupidity
+ * 
+ * Mobile-first responsive styles for the music collection page
+ * Fully integrated with Bootstrap 5 and dark-techno theme
+ */
+
+/* Step indicator styling */
+.step-indicator {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.step-indicator.active {
+    background: var(--accent-blue);
+    color: white;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+.step-line {
+    width: 60px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 0 10px;
+}
+
+/* Spotify track card styling - Mobile First */
+.spotify-track-card {
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: rgba(255, 255, 255, 0.02);
+    transition: all 0.2s ease;
+}
+
+.spotify-track-card:hover {
+    background: rgba(0, 212, 255, 0.1);
+    border-color: var(--accent-blue) !important;
+    transform: translateY(-2px);
+}
+
+/* Selected song card */
+.selected-song-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Star rating input */
+.rating-input {
+    direction: rtl;
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+}
+
+.rating-input input[type="radio"] {
+    display: none;
+}
+
+.rating-input label {
+    font-size: 1.5rem;
+    color: #6c757d;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.rating-input label:hover,
+.rating-input label:hover ~ label,
+.rating-input input[type="radio"]:checked ~ label {
+    color: #feca57;
+}
+
+/* Modal enhancements - Mobile Responsive */
+.modal-xl .modal-body {
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* Track card images */
+.spotify-track-card img {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* Album Art - Mobile Responsive */
+.album-art-compact {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.album-art-compact:hover {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+}
+
+/* Album Art - Grid Card Display (Fit to Card) */
+.album-art-grid {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 0.5rem 0.5rem 0 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    display: block;
+}
+
+.album-art-grid:hover {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+    transform: scale(1.02);
+}
+
+/* Album art container with playback overlay */
+.album-art-container {
+    position: relative;
+}
+
+/* Playback overlay styles removed - music catalog is metadata only */
+
+/* Music Entry Cards - Mobile First Design */
+.music-entry-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    min-height: 75px;
+    height: auto;
+}
+
+.music-entry-card:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(0, 212, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Song title clickable */
+.song-title {
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.song-title:hover {
+    color: var(--accent-blue);
+}
+
+/* Button and Badge Styles */
+.btn-xs {
+    padding: 0.15rem 0.3rem;
+    font-size: 0.7rem;
+    border-radius: 4px;
+}
+
+.tag-badge-mini {
+    display: inline-block;
+    padding: 1px 6px;
+    font-size: 0.6rem;
+    border: 1px solid;
+    border-radius: 8px;
+    margin-right: 4px;
+    margin-bottom: 2px;
+}
+
+.dropdown-toggle-no-caret::after {
+    display: none;
+}
+
+/* Tag System */
+.tag-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    border: 1px solid;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.tag-checkbox:checked + label .tag-badge {
+    font-weight: 600;
+    box-shadow: 0 0 8px currentColor;
+}
+
+.form-check-label {
+    cursor: pointer;
+}
+
+#new-tag-form {
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+}
+
+#new-tag-color {
+    height: 31px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.rating-stars-small {
+    display: flex;
+    gap: 1px;
+}
+
+/* Modal Content - Mobile Responsive */
+.modal-body .album-art-large {
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+
+.song-details-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+/* Preview Badge Styles */
+.tags-preview-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.preview-badge {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #28a745, #20c997) !important;
+    border: 1px solid rgba(40, 167, 69, 0.3);
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+    white-space: nowrap;
+}
+
+.preview-badge i {
+    font-size: 0.7rem;
+}
+
+.tags-container {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+}
+
+/* Progress bars removed - music catalog is metadata only */
+
+/* Large Progress Bars (for view details modal) */
+.large-progress-container {
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.large-progress-bar {
+    width: 100%;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 212, 255, 0.2);
+}
+
+.large-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+    transition: width 0.1s ease;
+}
+
+.progress-time-display {
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+    font-family: 'Kode Mono', monospace;
+}
+
+.preview-time-current {
+    color: var(--accent-blue);
+    font-weight: 500;
+}
+
+.preview-time-total {
+    color: rgba(138, 43, 226, 0.8);
+}
+
+/* Playback functionality removed - music catalog is metadata only */
+
+/* Audio visualizer and preview controls removed - music catalog is metadata only */
+
+/* Mobile Responsive Breakpoints */
+@media (max-width: 575.98px) {
+    /* Extra small devices */
+    .album-art-compact {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .album-art-grid {
+        aspect-ratio: 1;
+        border-radius: 0.375rem 0.375rem 0 0;
+    }
+    
+    .music-entry-card {
+        min-height: 65px;
+        padding: 0.75rem;
+    }
+    
+    .preview-main-button {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+    
+    .rating-input label {
+        font-size: 1.2rem;
+    }
+    
+    .modal-body .album-art-large {
+        max-width: 150px;
+    }
+    
+    .song-details-card {
+        padding: 1rem;
+    }
+    
+    .preview-controls {
+        justify-content: center;
+    }
+    
+    .visualizer-container {
+        padding: 10px;
+    }
+    
+    .visualizer-container canvas {
+        height: 80px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    /* Small devices */
+    .preview-time-display {
+        font-size: 0.7rem;
+    }
+    
+    .large-progress-container {
+        max-width: 250px;
+    }
+    
+    .preview-controls-container .btn-glow {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+    }
+}
+
+@media (max-width: 991.98px) {
+    /* Medium devices */
+    .col-lg-4 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+@media (min-width: 992px) {
+    /* Large devices and up */
+    .playback-overlay {
+        opacity: 0.3;
+    }
+    
+    .album-art-container:hover .playback-overlay {
+        opacity: 1;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .playback-overlay {
+        opacity: 1;
+        background: rgba(0, 0, 0, 0.6);
+    }
+    
+    .music-entry-card:hover {
+        transform: none;
+    }
+    
+    .spotify-track-card:hover {
+        transform: none;
+    }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .mini-progress-fill,
+    .large-progress-fill {
+        box-shadow: 0 0 6px rgba(0, 212, 255, 0.6);
+    }
+}
