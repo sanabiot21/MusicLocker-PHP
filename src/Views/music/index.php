@@ -15,71 +15,125 @@
                         <i class="bi bi-plus-circle me-2"></i>Add Music
                     </a>
                 </div>
-                
-                <!-- Flash Messages -->
-                <?php if ($message = flash('success')): ?>
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class="bi bi-check-circle me-2"></i><?= e($message) ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                <?php endif; ?>
-                
-                <?php if ($message = flash('error')): ?>
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class="bi bi-exclamation-triangle me-2"></i><?= e($message) ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                <?php endif; ?>
             </div>
         </div>
 
         <!-- Filters -->
         <div class="feature-card mb-4">
-            <form method="GET" action="<?= route_url('music') ?>" class="row g-3">
-                <div class="col-md-4">
-                    <input type="text" class="form-control" name="search" placeholder="Search music..." 
-                           value="<?= e($_GET['search'] ?? '') ?>">
-                </div>
-                <div class="col-md-2">
-                    <select class="form-select" name="genre">
-                        <option value="">All Genres</option>
-                        <?php foreach ($genres as $genre): ?>
-                            <option value="<?= e($genre) ?>" <?= ($_GET['genre'] ?? '') === $genre ? 'selected' : '' ?>>
-                                <?= e($genre) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select class="form-select" name="rating">
-                        <option value="">All Ratings</option>
-                        <option value="5" <?= ($_GET['rating'] ?? '') === '5' ? 'selected' : '' ?>>5 Stars</option>
-                        <option value="4" <?= ($_GET['rating'] ?? '') === '4' ? 'selected' : '' ?>>4+ Stars</option>
-                        <option value="3" <?= ($_GET['rating'] ?? '') === '3' ? 'selected' : '' ?>>3+ Stars</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select class="form-select" name="sort_by">
-                        <option value="created_at" <?= ($_GET['sort_by'] ?? 'created_at') === 'created_at' ? 'selected' : '' ?>>Recently Added</option>
-                        <option value="title" <?= ($_GET['sort_by'] ?? '') === 'title' ? 'selected' : '' ?>>Title</option>
-                        <option value="artist" <?= ($_GET['sort_by'] ?? '') === 'artist' ? 'selected' : '' ?>>Artist</option>
-                        <option value="personal_rating" <?= ($_GET['sort_by'] ?? '') === 'personal_rating' ? 'selected' : '' ?>>Rating</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <div class="form-check form-switch mt-2">
-                        <input class="form-check-input" type="checkbox" name="favorites" id="favorites"
-                               <?= isset($_GET['favorites']) ? 'checked' : '' ?>>
-                        <label class="form-check-label" for="favorites">Favorites Only</label>
+            <form method="GET" action="<?= route_url('music') ?>" id="musicFilterForm">
+                <!-- Primary Search Row -->
+                <div class="row g-2 mb-3">
+                    <div class="col-md-8 col-lg-9">
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" class="form-control" name="search" 
+                                   placeholder="Search by title, artist, album, or tags..." 
+                                   value="<?= e($_GET['search'] ?? '') ?>">
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-3">
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-glow flex-grow-1" id="toggleAdvancedFilters">
+                                <i class="bi bi-funnel me-1"></i>Filters
+                                <?php 
+                                $activeFiltersCount = 0;
+                                if (!empty($_GET['genre'])) $activeFiltersCount++;
+                                if (!empty($_GET['tag'])) $activeFiltersCount++;
+                                if (!empty($_GET['mood'])) $activeFiltersCount++;
+                                if (!empty($_GET['rating'])) $activeFiltersCount++;
+                                if (!empty($_GET['sort_by']) && $_GET['sort_by'] !== 'created_at') $activeFiltersCount++;
+                                if ($activeFiltersCount > 0): ?>
+                                    <span class="badge bg-glow"><?= $activeFiltersCount ?></span>
+                                <?php endif; ?>
+                            </button>
+                            <button type="submit" class="btn btn-glow">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <div class="col-12">
-                    <button type="submit" class="btn btn-outline-glow me-2">
-                        <i class="bi bi-search me-1"></i>Filter
-                    </button>
-                    <a href="<?= route_url('music') ?>" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-counterclockwise me-1"></i>Clear
-                    </a>
+                
+                <!-- Advanced Filters (Collapsible) -->
+                <div id="advancedFilters" class="<?= ($activeFiltersCount > 0) ? '' : 'collapse' ?>">
+                    <div class="row g-2 mb-3 pb-3 border-bottom border-secondary">
+                    <div class="col-md-3">
+                            <label class="form-label small text-muted mb-1">Genre</label>
+                            <select class="form-select form-select-sm" name="genre">
+                                <option value="">All Genres</option>
+                                <?php foreach ($genres as $genre): ?>
+                                    <option value="<?= e($genre) ?>" <?= ($_GET['genre'] ?? '') === $genre ? 'selected' : '' ?>>
+                                        <?= e($genre) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted mb-1">Mood</label>
+                        <select class="form-select form-select-sm" name="mood">
+                            <option value="">All Moods</option>
+                            <?php if (!empty($moodTags)): ?>
+                                <?php foreach ($moodTags as $tag): ?>
+                                    <option value="<?= e($tag['id']) ?>" <?= ($_GET['mood'] ?? '') == $tag['id'] ? 'selected' : '' ?>>
+                                        <?= e(preg_replace('/^Mood:\s*/i', '', $tag['name'])) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </select>
+                    </div>
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted mb-1">Tag</label>
+                            <select class="form-select form-select-sm" name="tag">
+                                <option value="">All Tags</option>
+                                <?php if (!empty($availableTags)): ?>
+                                    <?php foreach ($availableTags as $tag): ?>
+                                        <option value="<?= e($tag['id']) ?>" <?= ($_GET['tag'] ?? '') == $tag['id'] ? 'selected' : '' ?>>
+                                            <?= e($tag['name']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted mb-1">Rating</label>
+                            <select class="form-select form-select-sm" name="rating">
+                                <option value="">All Ratings</option>
+                                <option value="5" <?= ($_GET['rating'] ?? '') === '5' ? 'selected' : '' ?>>⭐⭐⭐⭐⭐ (5 stars)</option>
+                                <option value="4" <?= ($_GET['rating'] ?? '') === '4' ? 'selected' : '' ?>>⭐⭐⭐⭐+ (4+ stars)</option>
+                                <option value="3" <?= ($_GET['rating'] ?? '') === '3' ? 'selected' : '' ?>>⭐⭐⭐+ (3+ stars)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted mb-1">Sort By</label>
+                            <select class="form-select form-select-sm" name="sort_by">
+                                <option value="date_added" <?= ($_GET['sort_by'] ?? 'date_added') === 'date_added' ? 'selected' : '' ?>>Recently Added</option>
+                                <option value="title" <?= ($_GET['sort_by'] ?? '') === 'title' ? 'selected' : '' ?>>Title (A-Z)</option>
+                                <option value="artist" <?= ($_GET['sort_by'] ?? '') === 'artist' ? 'selected' : '' ?>>Artist (A-Z)</option>
+                                <option value="personal_rating" <?= ($_GET['sort_by'] ?? '') === 'personal_rating' ? 'selected' : '' ?>>Rating (High-Low)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions Row -->
+                <div class="d-flex gap-2 align-items-center flex-wrap">
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" name="favorites" id="favorites"
+                               <?= isset($_GET['favorites']) ? 'checked' : '' ?>
+                               onchange="this.form.submit()">
+                        <label class="form-check-label" for="favorites">
+                            <i class="bi bi-heart-fill text-danger me-1"></i>Favorites Only
+                        </label>
+                    </div>
+                    
+                    <?php if (!empty($_GET['search']) || !empty($_GET['genre']) || !empty($_GET['tag']) || !empty($_GET['rating']) || isset($_GET['favorites']) || (!empty($_GET['sort_by']) && $_GET['sort_by'] !== 'date_added')): ?>
+                        <div class="ms-auto">
+                            <a href="<?= route_url('music') ?>" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-x-circle me-1"></i>Clear All Filters
+                            </a>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </form>
         </div>
@@ -118,6 +172,17 @@
                                     <p class="text-muted small mb-2">
                                         <i class="bi bi-disc me-1"></i><?= e($entry['album']) ?>
                                     </p>
+                                <?php endif; ?>
+                                
+                                <!-- Tags -->
+                                <?php if (!empty($entry['tags'])): ?>
+                                    <div class="mb-2 d-flex flex-wrap gap-1">
+                                        <?php foreach ($entry['tags'] as $tag): ?>
+                                            <span class="badge" style="background-color: <?= e($tag['color']) ?>;">
+                                                <?= e($tag['name']) ?>
+                                            </span>
+                                        <?php endforeach; ?>
+                                    </div>
                                 <?php endif; ?>
                                 
                                 <!-- Rating & Favorite -->
@@ -189,12 +254,48 @@
             </div>
         </div>
     </div>
-
-    </div>
 </section>
 
 <?php ob_start(); ?>
 <script src="/assets/js/music.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips for tag dots
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+    
+    // Toggle advanced filters
+    const toggleBtn = document.getElementById('toggleAdvancedFilters');
+    const advancedFilters = document.getElementById('advancedFilters');
+    
+    if (toggleBtn && advancedFilters) {
+        toggleBtn.addEventListener('click', function() {
+            const bsCollapse = new bootstrap.Collapse(advancedFilters, {
+                toggle: true
+            });
+            
+            // Toggle icon
+            const icon = this.querySelector('i');
+            advancedFilters.addEventListener('shown.bs.collapse', function() {
+                icon.classList.remove('bi-funnel');
+                icon.classList.add('bi-funnel-fill');
+            });
+            advancedFilters.addEventListener('hidden.bs.collapse', function() {
+                icon.classList.remove('bi-funnel-fill');
+                icon.classList.add('bi-funnel');
+            });
+        });
+    }
+    
+    // Auto-submit on filter change for better UX
+    const filterSelects = document.querySelectorAll('#advancedFilters select');
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            this.form.submit();
+        });
+    });
+});
+</script>
 <?php 
 $additional_js = ob_get_clean();
 ?>

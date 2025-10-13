@@ -6,7 +6,7 @@
                 <div class="feature-card">
                     <div class="text-center mb-4">
                         <i class="bi bi-box-arrow-in-right display-4 mb-3" 
-                          Kindly style="background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                           style="background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
                         <h1 class="h2 mb-2">Welcome Back</h1>
                         <p class="text-muted">Sign in to access your personal music collection</p>
                     </div>
@@ -36,8 +36,8 @@
                                    value="<?= htmlspecialchars($flash_messages['old_input']['email'] ?? '') ?>"
                                    placeholder="Enter your email address" required>
                             <?php if (isset($flash_messages['validation_errors']['email'])): ?>
-                                <div class="invalid-feedback">
-                                    <?= htmlspecialchars($flash_messages['validation_errors']['email']) ?>
+                                <div class="text-danger small mt-1">
+                                    <i class="bi bi-exclamation-circle me-1"></i><?= htmlspecialchars($flash_messages['validation_errors']['email']) ?>
                                 </div>
                             <?php else: ?>
                                 <div class="invalid-feedback">
@@ -60,13 +60,12 @@
                                         style="border-color: #333; color: var(--text-gray);">
                                     <i class="bi bi-eye"></i>
                                 </button>
-                                <?php if (isset($flash_messages['validation_errors']['password'])): ?>
-                                    <div class="invalid-feedback">
-                                        <?= htmlspecialchars($flash_messages['validation_errors']['password']) ?>
-                                    </div>
-                                <?php endif; ?>
                             </div>
-                            <?php if (!isset($flash_messages['validation_errors']['password'])): ?>
+                            <?php if (isset($flash_messages['validation_errors']['password'])): ?>
+                                <div class="text-danger small mt-1">
+                                    <i class="bi bi-exclamation-circle me-1"></i><?= htmlspecialchars($flash_messages['validation_errors']['password']) ?>
+                                </div>
+                            <?php else: ?>
                                 <div class="invalid-feedback">
                                     Please enter your password.
                                 </div>
@@ -93,25 +92,7 @@
                             <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
                         </button>
 
-                        <!-- Divider -->
-                        <div class="text-center mb-3">
-                            <hr class="my-3" style="border-color: #333;">
-                            <span class="text-muted small bg-dark px-3">or</span>
-                        </div>
-
-                        <!-- Social Login Buttons (Placeholder) -->
-                        <div class="d-grid gap-2">
-                            <button type="button" class="btn btn-outline-glow py-2" disabled>
-                                <i class="bi bi-google me-2"></i>Continue with Google
-                            </button>
-                            <button type="button" class="btn btn-outline-glow py-2" disabled>
-                                <i class="bi bi-github me-2"></i>Continue with GitHub
-                            </button>
-                        </div>
                         
-                        <div class="text-center mt-2">
-                            <small class="text-muted">Social login coming soon!</small>
-                        </div>
                     </form>
 
                     <!-- Register Link -->

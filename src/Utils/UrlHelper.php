@@ -23,14 +23,21 @@ class UrlHelper
         'music.show' => '/music/{id}',
         'music.edit' => '/music/{id}/edit',
         'music.create' => '/music/add',
+        'music.add' => '/music/add',
         'api.music.favorite' => '/api/music/favorite',
         'api.music.play' => '/api/music/play',
         'api.spotify.search' => '/api/spotify/search',
         'spotify.callback' => '/spotify/callback',
+        'playlists' => '/playlists',
+        'playlists.create' => '/playlists/create',
+        'playlists.show' => '/playlists/{id}',
+        'playlists.edit' => '/playlists/{id}/edit',
         'admin' => '/admin',
+        'admin.dashboard' => '/admin',
         'admin.users' => '/admin/users',
         'admin.users.show' => '/admin/users/{id}',
         'admin.system' => '/admin/system',
+        'admin.settings' => '/admin/settings',
     ];
     
     /**

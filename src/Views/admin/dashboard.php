@@ -15,11 +15,14 @@
                         </div>
                         <div class="col-md-4 text-md-end">
                             <div class="btn-group" role="group">
-                                <a href="<?= route_url('admin.users') ?>" class="btn btn-glow">
+                                <a href="/admin/users" class="btn btn-glow">
                                     <i class="bi bi-people me-1"></i>Users
                                 </a>
-                                <a href="<?= route_url('admin.system') ?>" class="btn btn-outline-glow">
+                                <a href="/admin/system" class="btn btn-outline-glow">
                                     <i class="bi bi-cpu me-1"></i>System
+                                </a>
+                                <a href="/admin/settings" class="btn btn-outline-glow">
+                                    <i class="bi bi-gear me-1"></i>Settings
                                 </a>
                             </div>
                         </div>
@@ -69,166 +72,205 @@
             </div>
         </div>
 
-        <div class="row">
-            <!-- Quick Actions -->
-            <div class="col-lg-8">
+        <!-- Weekly Analytics Section -->
+        <div class="row mb-4">
+            <div class="col-12">
                 <div class="feature-card">
-                    <h4 class="mb-4">Quick Actions</h4>
+                    <h4 class="mb-4">
+                        <i class="bi bi-bar-chart me-2" style="color: var(--accent-purple);"></i>
+                        This Week's Activity
+                    </h4>
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <a href="<?= route_url('admin.users') ?>" class="card bg-dark border-secondary text-decoration-none h-100">
-                                <div class="card-body text-center">
-                                    <i class="bi bi-people display-1 mb-3" style="color: var(--accent-blue);"></i>
-                                    <h5 class="card-title">User Management</h5>
-                                    <p class="card-text text-muted">View, edit, and manage user accounts</p>
-                                </div>
-                            </a>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="bi bi-person-plus-fill mb-2" style="font-size: 2rem; color: var(--accent-blue);"></i>
+                                <div class="stat-number" style="font-size: 1.5rem;">+<?= $weeklyStats['new_users'] ?></div>
+                                <div class="stat-label">New Users</div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <a href="<?= route_url('admin.system') ?>" class="card bg-dark border-secondary text-decoration-none h-100">
-                                <div class="card-body text-center">
-                                    <i class="bi bi-cpu display-1 mb-3" style="color: var(--accent-purple);"></i>
-                                    <h5 class="card-title">System Health</h5>
-                                    <p class="card-text text-muted">Monitor system status and performance</p>
-                                </div>
-                            </a>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="bi bi-music-note-list mb-2" style="font-size: 2rem; color: var(--accent-purple);"></i>
+                                <div class="stat-number" style="font-size: 1.5rem;">+<?= $weeklyStats['new_music'] ?></div>
+                                <div class="stat-label">Songs Added</div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="card bg-dark border-secondary">
-                                <div class="card-body text-center">
-                                    <i class="bi bi-bar-chart display-1 mb-3 text-success"></i>
-                                    <h5 class="card-title">Analytics</h5>
-                                    <p class="card-text text-muted">View usage statistics and reports</p>
-                                    <small class="text-muted">Coming Soon</small>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="bi bi-fire mb-2" style="font-size: 2rem; color: #ff6b6b;"></i>
+                                <div class="stat-number" style="font-size: 1.2rem;">
+                                    <?php if ($weeklyStats['most_active']): ?>
+                                        <?= htmlspecialchars($weeklyStats['most_active']['first_name']) ?>
+                                    <?php else: ?>
+                                        N/A
+                                    <?php endif; ?>
+                                </div>
+                                <div class="stat-label">
+                                    Most Active
+                                    <?php if ($weeklyStats['most_active']): ?>
+                                        <small>(<?= $weeklyStats['most_active']['song_count'] ?> songs)</small>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="card bg-dark border-secondary">
-                                <div class="card-body text-center">
-                                    <i class="bi bi-gear display-1 mb-3 text-warning"></i>
-                                    <h5 class="card-title">Settings</h5>
-                                    <p class="card-text text-muted">Configure application settings</p>
-                                    <small class="text-muted">Coming Soon</small>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="bi bi-tag-fill mb-2" style="font-size: 2rem; color: #51cf66;"></i>
+                                <div class="stat-number" style="font-size: 1.2rem;">
+                                    <?php if ($weeklyStats['popular_tag']): ?>
+                                        <?= htmlspecialchars($weeklyStats['popular_tag']['name']) ?>
+                                    <?php else: ?>
+                                        N/A
+                                    <?php endif; ?>
+                                </div>
+                                <div class="stat-label">
+                                    Popular Tag
+                                    <?php if ($weeklyStats['popular_tag']): ?>
+                                        <small>(<?= $weeklyStats['popular_tag']['usage_count'] ?> uses)</small>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
+        <!-- Password Reset Requests Section -->
+        <?php if (!empty($resetRequests)): ?>
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="feature-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="mb-0">
+                            <i class="bi bi-key me-2 text-warning"></i>
+                            Password Reset Requests
+                            <span class="badge bg-danger ms-2"><?= count($resetRequests) ?></span>
+                        </h4>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th><i class="bi bi-person me-1"></i>User</th>
+                                    <th><i class="bi bi-envelope me-1"></i>Email</th>
+                                    <th><i class="bi bi-clock me-1"></i>Requested</th>
+                                    <th class="text-center"><i class="bi bi-gear me-1"></i>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($resetRequests as $request): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($request['first_name'] . ' ' . $request['last_name']) ?></td>
+                                    <td><?= htmlspecialchars($request['email']) ?></td>
+                                    <td><?= format_time_ago($request['created_at']) ?></td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-success" onclick="approveResetRequest(<?= $request['user_id'] ?>, '<?= htmlspecialchars($request['email']) ?>')">
+                                            <i class="bi bi-check-circle me-1"></i>Approve
+                                        </button>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <div class="row">
             <!-- Recent Activity -->
-            <div class="col-lg-4">
+            <div class="col-12">
                 <div class="feature-card">
                     <h4 class="mb-4">Recent Activity</h4>
                     <div class="list-group list-group-flush">
-                        <div class="list-group-item bg-transparent border-secondary">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-person-plus me-3 text-success"></i>
-                                <div class="flex-grow-1">
-                                    <div class="fw-semibold">New User Registration</div>
-                                    <small class="text-muted">Charlie Brown joined</small>
+                        <?php if (!empty($recentActivity)): ?>
+                            <?php foreach ($recentActivity as $activity): ?>
+                                <div class="list-group-item bg-transparent border-secondary">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi <?= $activity['icon'] ?> me-3 <?= $activity['color'] ?>"></i>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-semibold"><?= htmlspecialchars($activity['title']) ?></div>
+                                            <small class="text-muted"><?= htmlspecialchars($activity['description']) ?></small>
+                                        </div>
+                                        <small class="text-muted"><?= format_time_ago($activity['timestamp']) ?></small>
+                                    </div>
                                 </div>
-                                <small class="text-muted">2h ago</small>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="list-group-item bg-transparent border-secondary text-center text-muted py-4">
+                                <i class="bi bi-clock-history display-4 mb-2"></i>
+                                <p class="mb-0">No recent activity</p>
                             </div>
-                        </div>
-                        <div class="list-group-item bg-transparent border-secondary">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-music-note me-3" style="color: var(--accent-blue);"></i>
-                                <div class="flex-grow-1">
-                                    <div class="fw-semibold">Music Entry Added</div>
-                                    <small class="text-muted">Alice added new song</small>
-                                </div>
-                                <small class="text-muted">4h ago</small>
-                            </div>
-                        </div>
-                        <div class="list-group-item bg-transparent border-secondary">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-box-arrow-in-right me-3" style="color: var(--accent-purple);"></i>
-                                <div class="flex-grow-1">
-                                    <div class="fw-semibold">User Login</div>
-                                    <small class="text-muted">John Doe logged in</small>
-                                </div>
-                                <small class="text-muted">6h ago</small>
-                            </div>
-                        </div>
-                        <div class="list-group-item bg-transparent border-secondary">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-heart me-3 text-danger"></i>
-                                <div class="flex-grow-1">
-                                    <div class="fw-semibold">Song Favorited</div>
-                                    <small class="text-muted">Jane liked a song</small>
-                                </div>
-                                <small class="text-muted">1d ago</small>
-                            </div>
-                        </div>
+                        <?php endif; ?>
                     </div>
                     <div class="text-center mt-3">
-                        <a href="<?= route_url('admin.users') ?>" class="btn btn-outline-glow btn-sm">
-                            View All Activity
+                        <a href="/admin/users" class="btn btn-outline-glow btn-sm">
+                            View All Users
                         </a>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Navigation Links -->
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="text-center">
-                    <a href="<?= route_url('home') ?>" class="btn btn-outline-secondary me-2">
-                        <i class="bi bi-house me-1"></i>Back to Home
-                    </a>
-                    <a href="<?= route_url('dashboard') ?>" class="btn btn-outline-secondary">
-                        <i class="bi bi-speedometer2 me-1"></i>User Dashboard
-                    </a>
-                </div>
-            </div>
-        </div>
     </div>
 </section>
+
 
 <!-- Additional CSS for Admin Dashboard -->
 <?php ob_start(); ?>
 <style>
-    .stat-number {
-        font-size: 2.5rem;
-        font-weight: 700;
-        line-height: 1;
-        font-family: 'Kode Mono', monospace;
-    }
-    
-    .stat-label {
-        font-size: 0.9rem;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--text-gray);
-    }
-    
-    .card:hover {
-        transform: translateY(-2px);
-        transition: transform 0.2s ease;
-    }
-    
     .list-group-item {
         padding: 1rem;
     }
-    
+
     .list-group-item:hover {
         background-color: rgba(255, 255, 255, 0.05) !important;
     }
-    
+
     @media (max-width: 768px) {
-        .stat-number {
-            font-size: 2rem;
-        }
-        
         .display-1 {
             font-size: 3rem;
         }
     }
 </style>
-<?php 
+<?php
 $additional_css = ob_get_clean();
+?>
+
+<!-- JavaScript for Password Reset Approval -->
+<?php ob_start(); ?>
+<script>
+    function approveResetRequest(userId, userEmail) {
+        if (!confirm('Approve password reset for ' + userEmail + '?\n\nUser will be able to set their own password.')) {
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('user_id', userId);
+        formData.append('_token', '<?= csrf_token() ?>');
+
+        fetch('/admin/reset-request/approve', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                MusicLocker.showToast(data.message + ' User can now visit /forgot?email=' + userEmail, 'success');
+                // Reload page after delay
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                MusicLocker.showToast(data.message || 'Failed to approve request', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            MusicLocker.showToast('An error occurred', 'error');
+        });
+    }
+</script>
+<?php
+$additional_js = ob_get_clean();
 ?>

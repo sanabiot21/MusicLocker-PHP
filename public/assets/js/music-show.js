@@ -1,7 +1,4 @@
 /**
- * Music Show JavaScript
- * Music Locker - Team NaturalStupidity
- * 
  * Handles favorite toggling and delete confirmation for individual track view
  */
 
@@ -36,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Toggle favorite status via AJAX
+     * Toggle favorite status
      */
     async function toggleFavorite(button) {
         const entryId = button.dataset.entryId;
@@ -115,65 +112,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    /**
-     * Show toast notification with enhanced styling
-     */
+    // Delegate to global toast
     function showToast(title, message, type = 'info') {
-        const toastId = 'toast-' + Date.now();
-        const iconMap = {
-            'success': 'bi-check-circle-fill text-success',
-            'error': 'bi-exclamation-triangle-fill text-danger',
-            'warning': 'bi-exclamation-circle-fill text-warning',
-            'info': 'bi-info-circle-fill text-info'
-        };
-        
-        const bgMap = {
-            'success': 'bg-success',
-            'error': 'bg-danger',
-            'warning': 'bg-warning',
-            'info': 'bg-info'
-        };
-        
-        const toastHtml = `
-            <div id="${toastId}" class="toast align-items-center text-white ${bgMap[type] || 'bg-dark'} border-0" 
-                 role="alert" style="box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);">
-                <div class="d-flex">
-                    <div class="toast-body d-flex align-items-center">
-                        <i class="bi ${iconMap[type] || iconMap.info} me-2 fs-5"></i>
-                        <div>
-                            <strong>${title}</strong><br>
-                            ${message}
-                        </div>
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                </div>
-            </div>
-        `;
-        
-        // Create or get toast container
-        let toastContainer = document.getElementById('toast-container');
-        if (!toastContainer) {
-            toastContainer = document.createElement('div');
-            toastContainer.id = 'toast-container';
-            toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
-            toastContainer.style.zIndex = '1070';
-            document.body.appendChild(toastContainer);
+        if (window.MusicLocker && typeof window.MusicLocker.showToast === 'function') {
+            const composed = (title ? `<strong>${title}</strong><br>` : '') + (message || '');
+            window.MusicLocker.showToast(composed, type);
         }
-        
-        toastContainer.insertAdjacentHTML('beforeend', toastHtml);
-        
-        const toastElement = document.getElementById(toastId);
-        const toast = new bootstrap.Toast(toastElement, {
-            autohide: true,
-            delay: type === 'success' ? 3000 : 4000
-        });
-        
-        toast.show();
-        
-        // Clean up after toast is hidden
-        toastElement.addEventListener('hidden.bs.toast', function() {
-            toastElement.remove();
-        });
     }
     
     /**
@@ -250,16 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    /**
-     * Auto-hide alerts after 5 seconds
-     */
-    const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
-    alerts.forEach(alert => {
-        setTimeout(() => {
-            const bsAlert = new bootstrap.Alert(alert);
-            bsAlert.close();
-        }, 5000);
-    });
+    // Remove legacy alert auto-hide (no in-flow alerts anymore)
     
     /**
      * Add loading states to action buttons

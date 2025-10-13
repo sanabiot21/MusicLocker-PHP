@@ -1,12 +1,4 @@
 <?php
-/**
- * Music Locker Application Entry Point - Clean Architecture
- * Team NaturalStupidity
- * 
- * Under 100 lines - only routing and bootstrapping
- */
-
-// Error reporting for development
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -22,6 +14,7 @@ require_once ROOT_PATH . '/vendor/autoload.php';
 
 // Load helper functions
 require_once SRC_PATH . '/Utils/HelperFunctions.php';
+require_once SRC_PATH . '/Utils/helpers.php';
 require_once SRC_PATH . '/Security/CsrfManager.php';
 require_once SRC_PATH . '/Utils/UrlHelper.php';
 
@@ -30,13 +23,13 @@ use MusicLocker\Controllers\HomeController;
 use MusicLocker\Controllers\DashboardController;
 use MusicLocker\Controllers\SpotifyController;
 use MusicLocker\Controllers\MusicController;
+use MusicLocker\Controllers\PlaylistController;
 use MusicLocker\Controllers\AdminController;
 
 // Get request info
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
-// Simple routing
 try {
     switch (true) {
         // Authentication routes
@@ -125,39 +118,124 @@ try {
             }
             break;
             
-        // Admin routes (no auth required as per spec)
+        // Playlist Routes
+        case $requestUri === '/playlists':
+            $controller = new PlaylistController();
+            $controller->index();
+            break;
+            
+        case preg_match('/^\/playlists\/create$/', $requestUri):
+            $controller = new PlaylistController();
+            $controller->create();
+            break;
+            
+        case preg_match('/^\/playlists\/(\d+)$/', $requestUri, $matches):
+            $controller = new PlaylistController();
+            $controller->show((int)$matches[1]);
+            break;
+            
+        case preg_match('/^\/playlists\/(\d+)\/edit$/', $requestUri, $matches):
+            $controller = new PlaylistController();
+            $controller->edit((int)$matches[1]);
+            break;
+            
+        case preg_match('/^\/playlists\/(\d+)\/delete$/', $requestUri, $matches):
+            if ($requestMethod === 'POST') {
+                $controller = new PlaylistController();
+                $controller->delete((int)$matches[1]);
+            } else {
+                redirect(route_url('playlists'));
+            }
+            break;
+            
+        // Playlist API Routes (AJAX)
+        case $requestUri === '/playlists/add-track':
+            if ($requestMethod === 'POST') {
+                $controller = new PlaylistController();
+                $controller->addTrack();
+            } else {
+                http_response_code(405);
+                echo json_encode(['error' => 'Method not allowed']);
+            }
+            break;
+            
+        case $requestUri === '/playlists/remove-track':
+            if ($requestMethod === 'POST') {
+                $controller = new PlaylistController();
+                $controller->removeTrack();
+            } else {
+                http_response_code(405);
+                echo json_encode(['error' => 'Method not allowed']);
+            }
+            break;
+            
+        // Admin routes (protected by requireAdmin in controller)
         case $requestUri === '/admin':
             $controller = new AdminController();
             $controller->dashboard();
             break;
-            
+
         case $requestUri === '/admin/users':
             $controller = new AdminController();
             $controller->userList();
             break;
-            
+
         case preg_match('/^\/admin\/users\/(\d+)$/', $requestUri, $matches) === 1:
             $controller = new AdminController();
             $controller->userDetail((int)$matches[1]);
             break;
-            
+
+        case preg_match('/^\/admin\/users\/(\d+)\/music$/', $requestUri, $matches) === 1:
+            $controller = new AdminController();
+            $controller->userMusicCollection((int)$matches[1]);
+            break;
+
         case $requestUri === '/admin/system':
             $controller = new AdminController();
             $controller->systemHealth();
             break;
+
+        case $requestUri === '/admin/settings':
+            $controller = new AdminController();
+            $controller->settings();
+            break;
             
+        case $requestUri === '/admin/user/toggle-status' && $requestMethod === 'POST':
+            $controller = new AdminController();
+            $controller->toggleUserStatus();
+            break;
+
+        case $requestUri === '/admin/user/delete' && $requestMethod === 'POST':
+            $controller = new AdminController();
+            $controller->deleteUser();
+            break;
+
+        case $requestUri === '/admin/user/reset-password' && $requestMethod === 'POST':
+            $controller = new AdminController();
+            $controller->adminResetUserPassword();
+            break;
+
+        case $requestUri === '/admin/reset-request/approve' && $requestMethod === 'POST':
+            $controller = new AdminController();
+            $controller->approveResetRequest();
+            break;
+
+        case $requestUri === '/admin/user/save-notes' && $requestMethod === 'POST':
+            $controller = new AdminController();
+            $controller->saveUserNotes();
+            break;
+
         // Spotify routes
         case $requestUri === '/api/spotify/search':
             $controller = new SpotifyController();
             $controller->search();
             break;
             
-        case $requestUri === '/spotify/callback':
+        case $requestUri === '/api/spotify/album-tracks':
             $controller = new SpotifyController();
-            $controller->callback();
+            $controller->albumTracks();
             break;
             
-        // Static file serving (development only)
         case $requestUri === '/assets/css/dark-techno-theme.css':
             serveStaticFile(ROOT_PATH . '/music-locker-bootstrap/assets/css/dark-techno-theme.css', 'text/css');
             break;

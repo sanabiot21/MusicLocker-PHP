@@ -70,6 +70,15 @@ if (!function_exists('current_user_id')) {
     }
 }
 
+if (!function_exists('is_admin')) {
+    /**
+     * Check if current user is an admin
+     */
+    function is_admin(): bool {
+        return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
+    }
+}
+
 if (!function_exists('format_duration')) {
     /**
      * Format duration in seconds to MM:SS
@@ -84,17 +93,50 @@ if (!function_exists('format_duration')) {
 
 if (!function_exists('format_time_ago')) {
     /**
-     * Format datetime as time ago
+     * Format datetime as time ago with granular precision
      */
     function format_time_ago($datetime): string {
         $time = time() - strtotime($datetime);
         
-        if ($time < 60) return 'just now';
-        if ($time < 3600) return floor($time/60) . ' min ago';
-        if ($time < 86400) return floor($time/3600) . ' hr ago';
-        if ($time < 2592000) return floor($time/86400) . ' days ago';
+        // Less than 1 minute
+        if ($time < 60) {
+            return $time <= 5 ? 'just now' : $time . ' sec ago';
+        }
         
+        // Less than 1 hour (show minutes)
+        if ($time < 3600) {
+            $minutes = floor($time / 60);
+            return $minutes . ' min' . ($minutes > 1 ? 's' : '') . ' ago';
+        }
+        
+        // Less than 24 hours (show hours and minutes)
+        if ($time < 86400) {
+            $hours = floor($time / 3600);
+            $minutes = floor(($time % 3600) / 60);
+            $result = $hours . ' hr' . ($hours > 1 ? 's' : '');
+            if ($minutes > 0) {
+                $result .= ' ' . $minutes . ' min' . ($minutes > 1 ? 's' : '');
+            }
+            return $result . ' ago';
+        }
+        
+        // Less than 30 days (show days)
+        if ($time < 2592000) {
+            $days = floor($time / 86400);
+            return $days . ' day' . ($days > 1 ? 's' : '') . ' ago';
+        }
+        
+        // Older than 30 days - show date
         return date('M j, Y', strtotime($datetime));
+    }
+}
+
+if (!function_exists('time_ago')) {
+    /**
+     * Alias for format_time_ago
+     */
+    function time_ago($datetime): string {
+        return format_time_ago($datetime);
     }
 }
 
@@ -115,14 +157,7 @@ if (!function_exists('config')) {
     }
 }
 
-if (!function_exists('log_activity')) {
-    /**
-     * Log user activity
-     */
-    function log_activity(string $action, ?string $targetType = null, ?int $targetId = null, ?string $description = null): void {
-        error_log("Activity: $action - User: " . (current_user_id() ?? 'guest') . " - $description");
-    }
-}
+// Intentionally no log_activity here to allow DB-backed implementation in src/Utils/helpers.php
 
 if (!function_exists('storage_path')) {
     /**

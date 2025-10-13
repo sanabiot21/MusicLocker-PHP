@@ -22,7 +22,7 @@
 
         <!-- Quick Stats Row -->
         <div class="row g-4 mb-5">
-            <div class="col-md-3 col-sm-6">
+            <div class="col-lg-2dot4 col-md-4 col-sm-6">
                 <div class="feature-card text-center">
                     <div class="stat-icon mb-3">
                         <i class="bi bi-music-note-list" style="font-size: 2.5rem; color: var(--accent-blue);"></i>
@@ -32,7 +32,7 @@
                 </div>
             </div>
             
-            <div class="col-md-3 col-sm-6">
+            <div class="col-lg-2dot4 col-md-4 col-sm-6">
                 <div class="feature-card text-center">
                     <div class="stat-icon mb-3">
                         <i class="bi bi-heart-fill" style="font-size: 2.5rem; color: var(--accent-purple);"></i>
@@ -42,7 +42,7 @@
                 </div>
             </div>
             
-            <div class="col-md-3 col-sm-6">
+            <div class="col-lg-2dot4 col-md-4 col-sm-6">
                 <div class="feature-card text-center">
                     <div class="stat-icon mb-3">
                         <i class="bi bi-star-fill" style="font-size: 2.5rem; color: #feca57;"></i>
@@ -52,90 +52,79 @@
                 </div>
             </div>
             
-            <div class="col-md-3 col-sm-6">
+            <div class="col-lg-2dot4 col-md-4 col-sm-6">
                 <div class="feature-card text-center">
                     <div class="stat-icon mb-3">
-                        <i class="bi bi-person-music" style="font-size: 2.5rem; color: #4ecdc4;"></i>
+                        <i class="bi bi-person-lines-fill" style="font-size: 2.5rem; color: #4ecdc4;"></i>
                     </div>
                     <h3 class="stat-number" style="color: #4ecdc4;"><?= number_format($userStats['unique_artists'] ?? 0) ?></h3>
                     <p class="text-muted mb-0">Artists</p>
                 </div>
             </div>
-        </div>
-
-        <!-- Quick Actions Row -->
-        <div class="row g-4 mb-5">
-            <div class="col-lg-8">
-                <div class="feature-card">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4 class="mb-0">Quick Actions</h4>
-                        <i class="bi bi-lightning text-warning" style="font-size: 1.5rem;"></i>
+            
+            <div class="col-lg-2dot4 col-md-4 col-sm-6">
+                <div class="feature-card text-center">
+                    <div class="stat-icon mb-3">
+                        <i class="bi bi-collection-play" style="font-size: 2.5rem; color: #ff6b6b;"></i>
                     </div>
-                    
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <a href="<?= route_url('music.add') ?>" class="btn btn-glow w-100 py-3">
-                                <i class="bi bi-plus-circle me-2"></i>Add New Song
-                            </a>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="btn btn-outline-secondary w-100 py-3 d-flex align-items-center justify-content-center">
-                                <i class="bi bi-spotify me-2"></i>Spotify Search Available
-                                <i class="bi bi-check-circle ms-2"></i>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <a href="<?= route_url('music.index') ?>" class="btn btn-outline-secondary w-100 py-3">
-                                <i class="bi bi-search me-2"></i>Browse Collection
-                            </a>
-                        </div>
-                        <div class="col-md-6">
-                            <a href="<?= route_url('music.index') ?>?favorites=1" class="btn btn-outline-secondary w-100 py-3">
-                                <i class="bi bi-heart-fill me-2"></i>View Favorites
-                            </a>
-                        </div>
-                    </div>
+                    <h3 class="stat-number" style="color: #ff6b6b;"><?= number_format($userStats['playlist_count'] ?? 0) ?></h3>
+                    <p class="text-muted mb-0">Playlists</p>
                 </div>
             </div>
-            
-            <div class="col-lg-4">
+        </div>
+
+        <!-- Account Info Row -->
+        <div class="row g-4 mb-5">
+            <div class="col-12">
                 <div class="feature-card">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h4 class="mb-0">Account Info</h4>
                         <a href="<?= route_url('profile') ?>" class="btn btn-sm btn-outline-glow">
-                            <i class="bi bi-pencil me-1"></i>Edit
+                            <i class="bi bi-pencil me-1"></i>Edit Profile
                         </a>
                     </div>
                     
-                    <div class="mb-3">
-                        <div class="d-flex align-items-center mb-2">
-                            <i class="bi bi-person me-2 text-muted"></i>
-                            <span><?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?></span>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-person me-2 text-muted"></i>
+                                        <span><?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-envelope me-2 text-muted"></i>
+                                        <span class="text-truncate"><?= htmlspecialchars($user['email']) ?></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-calendar me-2 text-muted"></i>
+                                        <span>Joined <?= format_date($user['created_at'], 'M Y') ?></span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="d-flex align-items-center mb-2">
-                            <i class="bi bi-envelope me-2 text-muted"></i>
-                            <span class="text-truncate"><?= htmlspecialchars($user['email']) ?></span>
+                        
+                        <?php if (isset($userStats['average_rating']) && $userStats['average_rating'] > 0): ?>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="text-muted small mb-1">Average Rating</div>
+                                <div class="d-flex justify-content-center align-items-center">
+                                    <?php 
+                                    $avgRating = round($userStats['average_rating'], 1);
+                                    for ($i = 1; $i <= 5; $i++): 
+                                    ?>
+                                        <i class="bi bi-star<?= $i <= $avgRating ? '-fill text-warning' : ' text-muted' ?> me-1"></i>
+                                    <?php endfor; ?>
+                                    <span class="ms-2 text-muted"><?= number_format($avgRating, 1) ?></span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-calendar me-2 text-muted"></i>
-                            <span>Joined <?= format_date($user['created_at'], 'M Y') ?></span>
-                        </div>
+                        <?php endif; ?>
                     </div>
-                    
-                    <?php if (isset($userStats['average_rating']) && $userStats['average_rating'] > 0): ?>
-                    <div class="text-center pt-3 border-top" style="border-color: #333 !important;">
-                        <div class="text-muted small mb-1">Average Rating</div>
-                        <div class="d-flex justify-content-center align-items-center">
-                            <?php 
-                            $avgRating = round($userStats['average_rating'], 1);
-                            for ($i = 1; $i <= 5; $i++): 
-                            ?>
-                                <i class="bi bi-star<?= $i <= $avgRating ? '-fill text-warning' : ' text-muted' ?> me-1"></i>
-                            <?php endfor; ?>
-                            <span class="ms-2 text-muted"><?= number_format($avgRating, 1) ?></span>
-                        </div>
-                    </div>
-                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -188,65 +177,39 @@
                             </a>
                         </div>
                         
-                        <!-- Recent Music Entries -->
-                        <?php if (!empty($recentEntries)): ?>
-                            <div class="row g-3">
-                                <?php foreach (array_slice($recentEntries, 0, 6) as $entry): ?>
-                                    <div class="col-md-6 col-lg-4">
-                                        <div class="music-entry-card p-3">
-                                            <div class="d-flex">
-                                                <?php if ($entry['album_art_url']): ?>
-                                                    <img src="<?= e($entry['album_art_url']) ?>" 
-                                                         alt="<?= e($entry['title']) ?>" 
-                                                         class="album-art-small me-3">
-                                                <?php else: ?>
-                                                    <div class="album-art-small-placeholder me-3">
-                                                        <i class="bi bi-music-note"></i>
-                                                    </div>
-                                                <?php endif; ?>
-                                                <div class="flex-grow-1">
-                                                    <h6 class="mb-1">
-                                                        <a href="<?= route_url('music.show', $entry['id']) ?>" 
-                                                           class="text-decoration-none text-light">
-                                                            <?= e($entry['title']) ?>
-                                                        </a>
-                                                    </h6>
-                                                    <p class="text-muted mb-1 small"><?= e($entry['artist']) ?></p>
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <?php if ($entry['personal_rating']): ?>
-                                                            <div>
-                                                                <?php for ($i = 1; $i <= 5; $i++): ?>
-                                                                    <i class="bi bi-star<?= $i <= $entry['personal_rating'] ? '-fill text-warning' : ' text-muted' ?>" style="font-size: 0.7rem;"></i>
-                                                                <?php endfor; ?>
-                                                            </div>
-                                                        <?php else: ?>
-                                                            <div></div>
-                                                        <?php endif; ?>
-                                                        <small class="text-muted">
-                                                            <?= format_time_ago($entry['created_at']) ?>
-                                                        </small>
-                                                    </div>
-                                                </div>
+                        <?php if (!empty($recentActivity)): ?>
+                            <div class="activity-timeline">
+                                <?php foreach ($recentActivity as $activity): ?>
+                                    <div class="activity-item">
+                                        <div class="activity-icon">
+                                            <?php
+                                            $iconClass = match($activity['type']) {
+                                                'music_add' => 'bi-plus-circle text-success',
+                                                'favorite' => 'bi-heart-fill text-danger',
+                                                'profile_update' => 'bi-person-gear',
+                                                'login' => 'bi-box-arrow-in-right text-info',
+                                                default => 'bi-circle'
+                                            };
+                                            ?>
+                                            <i class="bi <?= $iconClass ?>"></i>
+                                        </div>
+                                        <div class="activity-content">
+                                            <div class="activity-header">
+                                                <strong><?= htmlspecialchars($activity['action']) ?></strong>
+                                                <small class="text-muted"><?= format_date($activity['timestamp'], 'M j, g:i A') ?></small>
                                             </div>
+                                            <p class="activity-description mb-0">
+                                                <?= htmlspecialchars($activity['description']) ?>
+                                            </p>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
-                            
-                            <?php if (count($recentEntries) > 6): ?>
-                                <div class="text-center mt-4">
-                                    <a href="<?= route_url('music.index') ?>" class="btn btn-outline-glow">
-                                        View All <?= count($recentEntries) ?> Entries
-                                        <i class="bi bi-arrow-right ms-1"></i>
-                                    </a>
-                                </div>
-                            <?php endif; ?>
                         <?php else: ?>
-                            <!-- Placeholder for recent activity -->
                             <div class="text-center py-4 text-muted">
                                 <i class="bi bi-clock-history display-4 mb-3"></i>
-                                <p>Recent activity will appear here</p>
-                                <p class="small">Add some songs to see your activity timeline</p>
+                                <p>No recent activity found</p>
+                                <p class="small">Your activity will appear here as you use the app</p>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -259,72 +222,18 @@
 <!-- Additional CSS for dashboard -->
 <?php ob_start(); ?>
 <style>
-    .stat-number {
-        font-size: 2.5rem;
-        font-weight: 700;
-        line-height: 1;
-        margin-bottom: 0.5rem;
-        font-family: 'Kode Mono', monospace;
-    }
-    
-    .stat-icon {
-        height: 80px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .feature-card {
-        transition: transform 0.2s ease;
-    }
-    
-    .feature-card:hover {
-        transform: translateY(-2px);
-    }
-    
-    .album-art-small {
-        width: 50px;
-        height: 50px;
-        object-fit: cover;
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .album-art-small-placeholder {
-        width: 50px;
-        height: 50px;
-        background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--accent-blue);
-    }
-    
-    .music-entry-card {
-        transition: all 0.2s ease;
-        cursor: pointer;
-    }
-    
-    .music-entry-card:hover {
-        transform: translateY(-2px);
-        background: rgba(255, 255, 255, 0.05);
-    }
-    
-    @media (max-width: 768px) {
-        .stat-number {
-            font-size: 2rem;
+    /* Custom 5-column layout for large screens */
+    @media (min-width: 992px) {
+        .col-lg-2dot4 {
+            flex: 0 0 auto;
+            width: 20%;
         }
-        
+    }
+
+    /* Page-specific responsive adjustments */
+    @media (max-width: 768px) {
         .display-5 {
             font-size: 2rem;
-        }
-        
-        .album-art-small,
-        .album-art-small-placeholder {
-            width: 40px;
-            height: 40px;
         }
     }
 </style>

@@ -15,10 +15,10 @@
                         </div>
                         <div class="col-md-4 text-md-end">
                             <div class="btn-group" role="group">
-                                <a href="<?= route_url('admin') ?>" class="btn btn-outline-secondary">
+                                <a href="/admin" class="btn btn-outline-secondary">
                                     <i class="bi bi-arrow-left me-1"></i>Dashboard
                                 </a>
-                                <a href="<?= route_url('admin.system') ?>" class="btn btn-outline-glow">
+                                <a href="/admin/system" class="btn btn-outline-glow">
                                     <i class="bi bi-cpu me-1"></i>System
                                 </a>
                             </div>
@@ -147,15 +147,10 @@
                                                 <span class="text-muted"><?= htmlspecialchars($user['email']) ?></span>
                                             </td>
                                             <td>
-                                                <?php if ($user['status'] === 'active'): ?>
-                                                    <span class="badge bg-success">
-                                                        <i class="bi bi-check-circle me-1"></i>Active
-                                                    </span>
-                                                <?php else: ?>
-                                                    <span class="badge bg-warning">
-                                                        <i class="bi bi-pause-circle me-1"></i>Inactive
-                                                    </span>
-                                                <?php endif; ?>
+                                                <span class="badge <?= $user['status'] === 'active' ? 'bg-success' : 'bg-warning' ?>" id="status-badge-<?= $user['id'] ?>">
+                                                    <i class="bi <?= $user['status'] === 'active' ? 'bi-check-circle' : 'bi-pause-circle' ?> me-1"></i>
+                                                    <span class="status-text"><?= ucfirst($user['status']) ?></span>
+                                                </span>
                                             </td>
                                             <td>
                                                 <span class="badge" style="background: rgba(138, 43, 226, 0.2); color: var(--accent-purple);">
@@ -174,18 +169,20 @@
                                             </td>
                                             <td class="text-center">
                                                 <div class="btn-group btn-group-sm" role="group">
-                                                    <a href="<?= route_url('admin.users.show', $user['id']) ?>" 
+                                                    <a href="/admin/users/<?= $user['id'] ?>"
                                                        class="btn btn-outline-info" title="View Details">
                                                         <i class="bi bi-eye"></i>
                                                     </a>
-                                                    <button class="btn btn-outline-warning" title="Edit User" 
-                                                            onclick="editUser(<?= $user['id'] ?>)">
-                                                        <i class="bi bi-pencil"></i>
+                                                    <button class="btn btn-outline-warning" title="Toggle Status"
+                                                            onclick="toggleStatus(<?= $user['id'] ?>)">
+                                                        <i class="bi bi-toggle-on"></i>
                                                     </button>
-                                                    <button class="btn btn-outline-danger" title="Delete User" 
+                                                    <?php if ($user['id'] !== 1): ?>
+                                                    <button class="btn btn-outline-danger" title="Delete User"
                                                             onclick="deleteUser(<?= $user['id'] ?>, '<?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?>')">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
+                                                    <?php endif; ?>
                                                 </div>
                                             </td>
                                         </tr>
@@ -233,43 +230,6 @@
     </div>
 </section>
 
-<!-- Edit User Modal (UI Only) -->
-<div class="modal fade" id="editUserModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content bg-dark">
-            <div class="modal-header border-secondary">
-                <h5 class="modal-title">Edit User</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label">First Name</label>
-                    <input type="text" class="form-control form-control-dark" id="editFirstName">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Last Name</label>
-                    <input type="text" class="form-control form-control-dark" id="editLastName">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-control form-control-dark" id="editEmail">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Status</label>
-                    <select class="form-select form-select-dark" id="editStatus">
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                </div>
-            </div>
-            <div class="modal-footer border-secondary">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-glow">Save Changes</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteUserModal" tabindex="-1">
     <div class="modal-dialog">
@@ -279,6 +239,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
+                <input type="hidden" id="deleteUserId">
                 <p>Are you sure you want to delete the user <strong id="deleteUserName"></strong>?</p>
                 <div class="alert alert-warning">
                     <i class="bi bi-exclamation-triangle me-2"></i>
@@ -287,7 +248,7 @@
             </div>
             <div class="modal-footer border-secondary">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger">Delete User</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDeleteUser()">Delete User</button>
             </div>
         </div>
     </div>
@@ -360,16 +321,81 @@
         rows.forEach(row => tbody.appendChild(row));
     }
     
-    function editUser(userId) {
-        // In a real implementation, this would load user data
-        const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
-        modal.show();
+    function toggleStatus(userId) {
+        if (!confirm('Are you sure you want to toggle this user\'s status?')) {
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('user_id', userId);
+        formData.append('_token', '<?= csrf_token() ?>');
+
+        fetch('/admin/user/toggle-status', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update badge
+                const badge = document.getElementById('status-badge-' + userId);
+                if (data.newStatus === 'active') {
+                    badge.className = 'badge bg-success';
+                    badge.innerHTML = '<i class="bi bi-check-circle me-1"></i><span class="status-text">Active</span>';
+                } else {
+                    badge.className = 'badge bg-warning';
+                    badge.innerHTML = '<i class="bi bi-pause-circle me-1"></i><span class="status-text">Inactive</span>';
+                }
+
+                MusicLocker.showToast(data.message, 'success');
+            } else {
+                MusicLocker.showToast(data.message || 'Failed to toggle status', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            MusicLocker.showToast('An error occurred', 'error');
+        });
     }
-    
+
     function deleteUser(userId, userName) {
         document.getElementById('deleteUserName').textContent = userName;
+        document.getElementById('deleteUserId').value = userId;
         const modal = new bootstrap.Modal(document.getElementById('deleteUserModal'));
         modal.show();
+    }
+
+    function confirmDeleteUser() {
+        const userId = document.getElementById('deleteUserId').value;
+        const formData = new FormData();
+        formData.append('user_id', userId);
+        formData.append('_token', '<?= csrf_token() ?>');
+
+        fetch('/admin/user/delete', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                MusicLocker.showToast(data.message, 'success');
+                // Remove row from table
+                const row = document.querySelector(`tr[data-user-id="${userId}"]`);
+                if (row) row.remove();
+
+                // Close modal
+                bootstrap.Modal.getInstance(document.getElementById('deleteUserModal')).hide();
+
+                // Reload page after a delay
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                MusicLocker.showToast(data.message || 'Failed to delete user', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            MusicLocker.showToast('An error occurred', 'error');
+        });
     }
 </script>
 <?php 
@@ -379,73 +405,45 @@ $additional_js = ob_get_clean();
 <!-- Additional CSS -->
 <?php ob_start(); ?>
 <style>
-    .stat-number {
-        font-size: 2rem;
-        font-weight: 700;
-        line-height: 1;
-        font-family: 'Kode Mono', monospace;
-    }
-    
-    .stat-label {
-        font-size: 0.9rem;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--text-gray);
-    }
-    
-    .user-avatar {
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
     .table-dark {
         --bs-table-bg: transparent;
     }
-    
+
     .table-hover tbody tr:hover {
         background-color: rgba(255, 255, 255, 0.05);
     }
-    
+
     .btn-group-sm .btn {
         padding: 0.25rem 0.5rem;
     }
-    
+
     .pagination-dark .page-link {
         background-color: #2a2a2a;
         border-color: #444;
         color: #fff;
     }
-    
+
     .pagination-dark .page-link:hover {
         background-color: #3a3a3a;
         border-color: var(--accent-blue);
         color: var(--accent-blue);
     }
-    
+
     .pagination-dark .page-item.active .page-link {
         background-color: var(--accent-blue);
         border-color: var(--accent-blue);
     }
-    
+
     @media (max-width: 768px) {
         .table-responsive {
             font-size: 0.875rem;
         }
-        
+
         .btn-group-sm .btn {
             padding: 0.125rem 0.25rem;
         }
-        
-        .user-avatar {
-            width: 30px;
-            height: 30px;
-        }
     }
 </style>
-<?php 
+<?php
 $additional_css = ob_get_clean();
 ?>

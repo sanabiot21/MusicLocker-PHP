@@ -99,6 +99,19 @@ abstract class BaseController
             redirect(route_url('login'));
         }
     }
+
+    /**
+     * Require admin role
+     */
+    protected function requireAdmin(): void
+    {
+        $this->requireAuth();
+
+        if (!is_admin()) {
+            flash('error', 'Access denied. Admin privileges required.');
+            redirect(route_url('dashboard'));
+        }
+    }
     
     /**
      * Validate CSRF token
@@ -155,12 +168,24 @@ abstract class BaseController
         
         // Start output buffering
         ob_start();
-        
+
         // Include the template
         require $templatePath;
-        
+
+        // Capture any additional CSS/JS defined in the view
+        $viewAdditionalCss = $additional_css ?? null;
+        $viewAdditionalJs = $additional_js ?? null;
+
         // Get the content
         $content = ob_get_clean();
+
+        // Pass additional CSS/JS to layout
+        if ($viewAdditionalCss !== null) {
+            $additional_css = $viewAdditionalCss;
+        }
+        if ($viewAdditionalJs !== null) {
+            $additional_js = $viewAdditionalJs;
+        }
         
         // Check if this is a layout template
         if (strpos($template, 'layouts.') === 0) {
@@ -170,6 +195,13 @@ abstract class BaseController
         
         // Check if we need to wrap in a layout
         if (!isset($no_layout) || !$no_layout) {
+            // Add additional CSS/JS to view data
+            if (isset($additional_css)) {
+                $viewData['additional_css'] = $additional_css;
+            }
+            if (isset($additional_js)) {
+                $viewData['additional_js'] = $additional_js;
+            }
             $this->renderLayout($content, $viewData);
         } else {
             echo $content;

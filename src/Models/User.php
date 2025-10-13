@@ -99,11 +99,6 @@ class User
                 return null;
             }
             
-            // Check if account is active
-            if ($user['status'] !== 'active') {
-                throw new Exception("Account is not active");
-            }
-            
             // Update last login
             $this->updateLastLogin($user['id']);
             
@@ -236,51 +231,6 @@ class User
         } catch (Exception $e) {
             error_log("Password reset error: " . $e->getMessage());
             return false;
-        }
-    }
-    
-    /**
-     * Update Spotify tokens for user
-     */
-    public function updateSpotifyTokens(int $userId, string $accessToken, string $refreshToken, int $expiresIn): bool
-    {
-        try {
-            $expiresAt = date('Y-m-d H:i:s', time() + $expiresIn);
-            
-            $sql = "UPDATE users SET 
-                    spotify_access_token = ?, 
-                    spotify_refresh_token = ?, 
-                    spotify_token_expires = ?,
-                    updated_at = NOW()
-                    WHERE id = ?";
-                    
-            return $this->db->execute($sql, [$accessToken, $refreshToken, $expiresAt, $userId]);
-            
-        } catch (Exception $e) {
-            error_log("Spotify token update error: " . $e->getMessage());
-            return false;
-        }
-    }
-    
-    /**
-     * Get user's Spotify tokens
-     */
-    public function getSpotifyTokens(int $userId): ?array
-    {
-        try {
-            $sql = "SELECT spotify_access_token, spotify_refresh_token, spotify_token_expires 
-                    FROM users WHERE id = ? LIMIT 1";
-            $result = $this->db->queryOne($sql, [$userId]);
-            
-            if (!$result || !$result['spotify_access_token']) {
-                return null;
-            }
-            
-            return $result;
-            
-        } catch (Exception $e) {
-            error_log("Spotify token retrieval error: " . $e->getMessage());
-            return null;
         }
     }
     
@@ -495,6 +445,357 @@ class User
         } catch (Exception $e) {
             error_log("Get user activity error: " . $e->getMessage());
             return [];
+        }
+    }
+
+    /**
+     * Get recent system-wide activity (Admin function)
+     */
+    public function getRecentActivity(int $limit = 10): array
+    {
+        try {
+            $activity = [];
+
+            // Get recent user registrations
+            $sql = "SELECT 'registration' as type,
+                           CONCAT(first_name, ' ', last_name) as user_name,
+                           email,
+                           created_at as timestamp
+                    FROM users
+                    ORDER BY created_at DESC
+                    LIMIT ?";
+            $registrations = $this->db->query($sql, [$limit]);
+
+            foreach ($registrations as $reg) {
+                $activity[] = [
+                    'type' => 'registration',
+                    'icon' => 'bi-person-plus',
+                    'color' => 'text-success',
+                    'title' => 'New User Registration',
+                    'description' => $reg['user_name'] . ' joined',
+                    'timestamp' => $reg['timestamp']
+                ];
+            }
+
+            // Get recent music entries
+            $sql = "SELECT me.title, me.artist, me.date_added as timestamp,
+                           CONCAT(u.first_name, ' ', u.last_name) as user_name
+                    FROM music_entries me
+                    JOIN users u ON me.user_id = u.id
+                    ORDER BY me.date_added DESC
+                    LIMIT ?";
+            $musicEntries = $this->db->query($sql, [$limit]);
+
+            foreach ($musicEntries as $entry) {
+                $activity[] = [
+                    'type' => 'music_add',
+                    'icon' => 'bi-music-note',
+                    'color' => 'text-info',
+                    'title' => 'Music Entry Added',
+                    'description' => $entry['user_name'] . ' added "' . $entry['title'] . '"',
+                    'timestamp' => $entry['timestamp']
+                ];
+            }
+
+            // Sort by timestamp desc
+            usort($activity, function($a, $b) {
+                return strtotime($b['timestamp']) - strtotime($a['timestamp']);
+            });
+
+            return array_slice($activity, 0, $limit);
+
+        } catch (Exception $e) {
+            error_log("Get recent activity error: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Toggle user status (Admin function)
+     */
+    public function toggleStatus(int $userId): bool
+    {
+        try {
+            $user = $this->findById($userId);
+            if (!$user) {
+                return false;
+            }
+
+            $newStatus = $user['status'] === 'active' ? 'inactive' : 'active';
+            $sql = "UPDATE users SET status = ?, updated_at = NOW() WHERE id = ?";
+
+            return $this->db->execute($sql, [$newStatus, $userId]);
+
+        } catch (Exception $e) {
+            error_log("Toggle user status error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Delete user account (Admin function)
+     */
+    public function deleteUser(int $userId): bool
+    {
+        try {
+            // Prevent deleting yourself or primary admin
+            if ($userId === 1) {
+                throw new Exception("Cannot delete primary admin account");
+            }
+
+            $sql = "DELETE FROM users WHERE id = ?";
+            return $this->db->execute($sql, [$userId]);
+
+        } catch (Exception $e) {
+            error_log("Delete user error: " . $e->getMessage());
+            throw new Exception($e->getMessage());
+        }
+    }
+
+    /**
+     * Log password reset request (for admin notification)
+     */
+    public function logPasswordResetRequest(int $userId, string $email): bool
+    {
+        try {
+            $sql = "INSERT INTO activity_log (user_id, action, target_type, target_id, description, ip_address, user_agent, created_at)
+                    VALUES (?, 'password_reset_request', 'user', ?, ?, ?, ?, NOW())";
+
+            $description = "Password reset requested for email: $email";
+            $ipAddress = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+            $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+
+            return $this->db->execute($sql, [$userId, $userId, $description, $ipAddress, $userAgent]);
+
+        } catch (Exception $e) {
+            error_log("Log password reset request error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Get pending password reset requests (Admin function)
+     */
+    public function getPendingResetRequests(): array
+    {
+        try {
+            $sql = "SELECT al.id, al.user_id, al.description, al.created_at,
+                           u.first_name, u.last_name, u.email, u.status
+                    FROM activity_log al
+                    JOIN users u ON al.user_id = u.id
+                    WHERE al.action = 'password_reset_request'
+                    AND al.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                    ORDER BY al.created_at DESC";
+
+            return $this->db->query($sql);
+
+        } catch (Exception $e) {
+            error_log("Get pending reset requests error: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Count pending password reset requests (Admin function)
+     */
+    public function countPendingResetRequests(): int
+    {
+        try {
+            $sql = "SELECT COUNT(*) as count
+                    FROM activity_log
+                    WHERE action = 'password_reset_request'
+                    AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+
+            $result = $this->db->queryOne($sql);
+            return (int)($result['count'] ?? 0);
+
+        } catch (Exception $e) {
+            error_log("Count pending reset requests error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Admin reset user password (no email required)
+     */
+    public function adminResetPassword(int $userId, string $newPassword): bool
+    {
+        try {
+            $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+            $sql = "UPDATE users SET password_hash = ?, updated_at = NOW() WHERE id = ?";
+
+            error_log("Admin reset password - User ID: $userId, Hash length: " . strlen($hashedPassword));
+
+            $result = $this->db->execute($sql, [$hashedPassword, $userId]);
+
+            if ($result) {
+                error_log("Password reset successful for user ID: $userId");
+            } else {
+                error_log("Password reset FAILED for user ID: $userId - execute() returned false");
+            }
+
+            return $result;
+
+        } catch (Exception $e) {
+            error_log("Admin reset password error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Approve password reset request (Admin function)
+     */
+    public function approveResetRequest(int $userId): bool
+    {
+        try {
+            // Just update the action to mark as approved
+            $sql = "UPDATE activity_log
+                    SET action = 'password_reset_approved', description = CONCAT(description, ' - APPROVED')
+                    WHERE user_id = ?
+                    AND action = 'password_reset_request'
+                    ORDER BY created_at DESC
+                    LIMIT 1";
+
+            return $this->db->execute($sql, [$userId]);
+
+        } catch (Exception $e) {
+            error_log("Approve reset request error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Check if user has approved reset request
+     */
+    public function hasApprovedResetRequest(string $email): ?array
+    {
+        try {
+            $sql = "SELECT al.id, al.user_id, al.created_at
+                    FROM activity_log al
+                    JOIN users u ON al.user_id = u.id
+                    WHERE u.email = ?
+                    AND al.action = 'password_reset_approved'
+                    AND al.created_at >= DATE_SUB(NOW(), INTERVAL 1 DAY)
+                    ORDER BY al.created_at DESC
+                    LIMIT 1";
+
+            return $this->db->queryOne($sql, [$email]);
+
+        } catch (Exception $e) {
+            error_log("Check approved reset error: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Check if user has pending reset request
+     */
+    public function hasPendingResetRequest(string $email): ?array
+    {
+        try {
+            $sql = "SELECT al.id, al.user_id, al.created_at
+                    FROM activity_log al
+                    JOIN users u ON al.user_id = u.id
+                    WHERE u.email = ?
+                    AND al.action = 'password_reset_request'
+                    AND al.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                    ORDER BY al.created_at DESC
+                    LIMIT 1";
+
+            return $this->db->queryOne($sql, [$email]);
+
+        } catch (Exception $e) {
+            error_log("Check pending reset error: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Clear password reset request from activity log
+     */
+    public function clearPasswordResetRequest(int $userId): bool
+    {
+        try {
+            $sql = "DELETE FROM activity_log
+                    WHERE user_id = ?
+                    AND action IN ('password_reset_request', 'password_reset_approved')
+                    AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+
+            return $this->db->execute($sql, [$userId]);
+
+        } catch (Exception $e) {
+            error_log("Clear password reset request error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Get weekly user growth (Admin analytics)
+     */
+    public function getWeeklyUserGrowth(): int
+    {
+        try {
+            $sql = "SELECT COUNT(*) as count FROM users
+                    WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+            $result = $this->db->queryOne($sql);
+            return (int)($result['count'] ?? 0);
+        } catch (Exception $e) {
+            error_log("Get weekly user growth error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Get weekly music count (Admin analytics)
+     */
+    public function getWeeklyMusicCount(): int
+    {
+        try {
+            $sql = "SELECT COUNT(*) as count FROM music_entries
+                    WHERE date_added >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+            $result = $this->db->queryOne($sql);
+            return (int)($result['count'] ?? 0);
+        } catch (Exception $e) {
+            error_log("Get weekly music count error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Get most active user (Admin analytics)
+     */
+    public function getMostActiveUser(): ?array
+    {
+        try {
+            $sql = "SELECT u.id, u.first_name, u.last_name, COUNT(me.id) as song_count
+                    FROM users u
+                    LEFT JOIN music_entries me ON u.id = me.user_id
+                    GROUP BY u.id
+                    ORDER BY song_count DESC
+                    LIMIT 1";
+            return $this->db->queryOne($sql);
+        } catch (Exception $e) {
+            error_log("Get most active user error: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Get popular tag (Admin analytics)
+     */
+    public function getPopularTag(): ?array
+    {
+        try {
+            $sql = "SELECT t.name, COUNT(met.music_entry_id) as usage_count
+                    FROM tags t
+                    LEFT JOIN music_entry_tags met ON t.id = met.tag_id
+                    GROUP BY t.id
+                    ORDER BY usage_count DESC
+                    LIMIT 1";
+            return $this->db->queryOne($sql);
+        } catch (Exception $e) {
+            error_log("Get popular tag error: " . $e->getMessage());
+            return null;
         }
     }
 

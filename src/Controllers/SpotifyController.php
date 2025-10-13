@@ -133,6 +133,80 @@ class SpotifyController extends BaseController
     }
     
     /**
+     * Get album tracks by Spotify album ID (Public endpoint - no user auth required)
+     */
+    public function albumTracks(): void
+    {
+        if (!$this->isMethod('GET')) {
+            json_response(['error' => 'Method not allowed'], 405);
+            return;
+        }
+        
+        $albumId = $this->input('id');
+        
+        if (!$albumId) {
+            json_response(['error' => 'Album ID is required'], 400);
+            return;
+        }
+        
+        try {
+            // Get album details and tracks
+            $album = $this->spotifyService->getAlbum($albumId);
+            $tracksResponse = $this->spotifyService->getAlbumTracks($albumId);
+            
+            // Get genre from album artists
+            $genre = 'Unknown';
+            if (!empty($album['artists'][0]['id'])) {
+                $artistInfo = $this->spotifyService->getArtist($album['artists'][0]['id']);
+                $genre = !empty($artistInfo['genres']) ? ucfirst($artistInfo['genres'][0]) : 'Unknown';
+            }
+            
+            // Format tracks with album context
+            $tracks = array_map(function($track) use ($album, $genre) {
+                $artists = array_map(fn($artist) => $artist['name'], $track['artists']);
+                return [
+                    'id' => $track['id'],
+                    'name' => $track['name'],
+                    'artists' => $artists,
+                    'artist_names' => implode(', ', $artists),
+                    'track_number' => $track['track_number'],
+                    'duration_ms' => $track['duration_ms'],
+                    'preview_url' => $track['preview_url'] ?? null,
+                    'spotify_url' => $track['external_urls']['spotify'] ?? null,
+                    // Include album context
+                    'album' => [
+                        'id' => $album['id'],
+                        'name' => $album['name'],
+                        'images' => $album['images'] ?? [],
+                        'release_date' => $album['release_date'] ?? null,
+                        'total_tracks' => $album['total_tracks']
+                    ],
+                    'genre' => $genre
+                ];
+            }, $tracksResponse['items'] ?? []);
+            
+            json_response([
+                'success' => true,
+                'album' => [
+                    'id' => $album['id'],
+                    'name' => $album['name'],
+                    'artists' => array_map(fn($artist) => $artist['name'], $album['artists']),
+                    'release_date' => $album['release_date'] ?? null,
+                    'total_tracks' => $album['total_tracks'],
+                    'images' => $album['images'] ?? [],
+                    'genre' => $genre
+                ],
+                'tracks' => $tracks,
+                'total' => count($tracks)
+            ]);
+            
+        } catch (Exception $e) {
+            error_log("Spotify album tracks fetch error: " . $e->getMessage());
+            json_response(['error' => 'Failed to fetch album tracks: ' . $e->getMessage()], 500);
+        }
+    }
+    
+    /**
      * Test Spotify API connection
      */
     public function test(): void

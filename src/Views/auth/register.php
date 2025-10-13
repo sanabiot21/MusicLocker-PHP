@@ -151,15 +151,22 @@
                         <!-- Terms and Privacy -->
                         <div class="mb-4">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="agreeTerms" name="agreeTerms" required
+                                <input class="form-check-input <?= isset($flash_messages['validation_errors']['agreeTerms']) ? 'is-invalid' : '' ?>" 
+                                       type="checkbox" id="agreeTerms" name="agreeTerms" required
                                        style="accent-color: var(--accent-blue);">
                                 <label class="form-check-label form-label-dark small" for="agreeTerms">
-                                    I agree to the <a href="#" class="text-decoration-none" style="color: var(--accent-blue);">Terms of Service</a> 
-                                    and <a href="#" class="text-decoration-none" style="color: var(--accent-blue);">Privacy Policy</a>
+                                    I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#tosModal" class="text-decoration-none" style="color: var(--accent-blue);">Terms of Service</a> 
+                                    and <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal" class="text-decoration-none" style="color: var(--accent-blue);">Privacy Policy</a>
                                 </label>
-                                <div class="invalid-feedback">
-                                    You must agree to the terms and conditions.
-                                </div>
+                                <?php if (isset($flash_messages['validation_errors']['agreeTerms'])): ?>
+                                    <div class="text-danger small mt-1">
+                                        <i class="bi bi-exclamation-circle me-1"></i><?= htmlspecialchars($flash_messages['validation_errors']['agreeTerms']) ?>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="invalid-feedback">
+                                        You must agree to the terms and conditions.
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
 
@@ -168,25 +175,8 @@
                             <i class="bi bi-person-plus me-2"></i>Create Account
                         </button>
 
-                        <!-- Divider -->
-                        <div class="text-center mb-3">
-                            <hr class="my-3" style="border-color: #333;">
-                            <span class="text-muted small bg-dark px-3">or</span>
-                        </div>
-
-                        <!-- Social Registration Buttons (Placeholder) -->
-                        <div class="d-grid gap-2">
-                            <button type="button" class="btn btn-outline-glow py-2" disabled>
-                                <i class="bi bi-google me-2"></i>Continue with Google
-                            </button>
-                            <button type="button" class="btn btn-outline-glow py-2" disabled>
-                                <i class="bi bi-github me-2"></i>Continue with GitHub
-                            </button>
-                        </div>
                         
-                        <div class="text-center mt-2">
-                            <small class="text-muted">Social registration coming soon!</small>
-                        </div>
+                        
                     </form>
 
                     <!-- Login Link -->
@@ -205,7 +195,78 @@
 
 <!-- Custom JavaScript for registration form -->
 <?php ob_start(); ?>
+<!-- Terms of Service Modal -->
+<div class="modal fade" id="tosModal" tabindex="-1" aria-labelledby="tosModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tosModalLabel">Terms of Service</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <pre style="white-space: pre-wrap; font-family: inherit;">
+<?php 
+// Safely include the TOS text if available
+$tosPath = __DIR__ . '/../../../docs/TOS-and-PP.md';
+if (file_exists($tosPath)) {
+    echo htmlspecialchars(file_get_contents($tosPath));
+} else {
+    echo 'Terms of Service content not found.';
+}
+?>
+                </pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-glow" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+    </div>
+
+<!-- Privacy Policy Modal -->
+<div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header">
+                <h5 class="modal-title" id="privacyModalLabel">Privacy Policy</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <pre style="white-space: pre-wrap; font-family: inherit;">
+<?php 
+// Reuse same file (contains both ToS and PP)
+$ppPath = __DIR__ . '/../../../docs/TOS-and-PP.md';
+if (file_exists($ppPath)) {
+    echo htmlspecialchars(file_get_contents($ppPath));
+} else {
+    echo 'Privacy Policy content not found.';
+}
+?>
+                </pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-glow" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
+    // Surface server-side messages in console for debugging
+    <?php if (isset($flash_messages['error'])): ?>
+    try { console.warn('[Register][Server Message]', <?= json_encode($flash_messages['error']) ?>); } catch (e) {}
+    <?php endif; ?>
+    <?php if (isset($flash_messages['validation_errors']) && is_array($flash_messages['validation_errors'])): ?>
+    try {
+        console.group('[Register][Server Validation Errors]');
+        console.table(<?= json_encode($flash_messages['validation_errors']) ?>);
+        console.groupEnd();
+    } catch (e) {}
+    <?php endif; ?>
+
+    // Small helper to avoid logging raw secrets
+    function regDebug(label, data) {
+        try { console.log('[Register][Client]', label, data); } catch (e) {}
+    }
     // Password visibility toggles
     function setupPasswordToggle(passwordId, toggleId) {
         document.getElementById(toggleId).addEventListener('click', function() {
@@ -239,11 +300,14 @@
         const password = document.getElementById('password').value;
         const confirmPassword = document.getElementById('confirm_password').value;
         const agreeTerms = document.getElementById('agreeTerms').checked;
+        const csrfTokenEl = document.querySelector('input[name="_token"]');
+        regDebug('Submit:start', { firstNameLen: firstName.length, lastNameLen: lastName.length, email, passwordLen: password.length, confirmLen: confirmPassword.length, agreeTerms, csrfPresent: !!csrfTokenEl });
 
         // Validate first name
         if (!firstName || firstName.length < 2) {
             document.getElementById('first_name').classList.add('is-invalid');
             isValid = false;
+            console.warn('[Register][Client] First name invalid');
         } else {
             document.getElementById('first_name').classList.remove('is-invalid');
         }
@@ -252,6 +316,7 @@
         if (!lastName || lastName.length < 2) {
             document.getElementById('last_name').classList.add('is-invalid');
             isValid = false;
+            console.warn('[Register][Client] Last name invalid');
         } else {
             document.getElementById('last_name').classList.remove('is-invalid');
         }
@@ -260,6 +325,7 @@
         if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
             document.getElementById('email').classList.add('is-invalid');
             isValid = false;
+            console.warn('[Register][Client] Email invalid');
         } else {
             document.getElementById('email').classList.remove('is-invalid');
         }
@@ -268,6 +334,7 @@
         if (!password || password.length < 8) {
             document.getElementById('password').classList.add('is-invalid');
             isValid = false;
+            console.warn('[Register][Client] Password invalid (<8)');
         } else {
             document.getElementById('password').classList.remove('is-invalid');
         }
@@ -276,6 +343,7 @@
         if (!confirmPassword || password !== confirmPassword) {
             document.getElementById('confirm_password').classList.add('is-invalid');
             isValid = false;
+            console.warn('[Register][Client] Confirm password mismatch');
         } else {
             document.getElementById('confirm_password').classList.remove('is-invalid');
         }
@@ -284,11 +352,13 @@
         if (!agreeTerms) {
             document.getElementById('agreeTerms').classList.add('is-invalid');
             isValid = false;
+            console.warn('[Register][Client] Terms not agreed');
         } else {
             document.getElementById('agreeTerms').classList.remove('is-invalid');
         }
 
         if (isValid) {
+            regDebug('Client validation', 'passed');
             // Show loading state
             const submitBtn = form.querySelector('button[type="submit"]');
             const originalText = submitBtn.innerHTML;
@@ -298,6 +368,7 @@
             
             // Allow form to submit naturally
         } else {
+            regDebug('Client validation', 'failed');
             event.preventDefault();
             event.stopPropagation();
         }

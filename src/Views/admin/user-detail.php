@@ -34,7 +34,7 @@
                         </div>
                         <div class="col-md-4 text-md-end">
                             <div class="btn-group" role="group">
-                                <a href="<?= route_url('admin.users') ?>" class="btn btn-outline-secondary">
+                                <a href="/admin/users" class="btn btn-outline-secondary">
                                     <i class="bi bi-arrow-left me-1"></i>Back to Users
                                 </a>
                                 <button class="btn btn-outline-warning" onclick="editUser()">
@@ -56,25 +56,25 @@
                     <h4 class="mb-4">Music Statistics</h4>
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <div class="stat-item text-center p-3 rounded" style="background: rgba(0, 212, 255, 0.1);">
+                            <div class="stat-item text-center p-2 rounded" style="background: rgba(0, 212, 255, 0.1);">
                                 <div class="stat-number text-primary"><?= number_format($userStats['total_entries'] ?? 0) ?></div>
                                 <div class="stat-label">Total Songs</div>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="stat-item text-center p-3 rounded" style="background: rgba(138, 43, 226, 0.1);">
+                            <div class="stat-item text-center p-2 rounded" style="background: rgba(138, 43, 226, 0.1);">
                                 <div class="stat-number" style="color: var(--accent-purple);"><?= number_format($userStats['favorite_entries'] ?? 0) ?></div>
                                 <div class="stat-label">Favorites</div>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="stat-item text-center p-3 rounded" style="background: rgba(254, 202, 87, 0.1);">
+                            <div class="stat-item text-center p-2 rounded" style="background: rgba(254, 202, 87, 0.1);">
                                 <div class="stat-number text-warning"><?= number_format($userStats['five_star_entries'] ?? 0) ?></div>
                                 <div class="stat-label">5-Star Songs</div>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="stat-item text-center p-3 rounded" style="background: rgba(78, 205, 196, 0.1);">
+                            <div class="stat-item text-center p-2 rounded" style="background: rgba(78, 205, 196, 0.1);">
                                 <div class="stat-number" style="color: #4ecdc4;"><?= number_format($userStats['unique_artists'] ?? 0) ?></div>
                                 <div class="stat-label">Unique Artists</div>
                             </div>
@@ -145,81 +145,89 @@
 
             <!-- Sidebar -->
             <div class="col-lg-4">
-                <!-- Account Information -->
+                <!-- Account Information & Actions -->
                 <div class="feature-card mb-4">
-                    <h5 class="mb-3">Account Information</h5>
+                    <h5 class="mb-4">Account Information</h5>
+                    
                     <div class="info-group">
-                        <div class="info-item">
-                            <label class="info-label">User ID</label>
-                            <div class="info-value">#<?= $user['id'] ?></div>
+                        <div class="info-item mb-3">
+                            <label class="form-label text-muted small">User ID</label>
+                            <div>#<?= $user['id'] ?></div>
                         </div>
-                        <div class="info-item">
-                            <label class="info-label">Full Name</label>
-                            <div class="info-value"><?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?></div>
+                        
+                        <div class="info-item mb-3">
+                            <label class="form-label text-muted small">Full Name</label>
+                            <div><?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?></div>
                         </div>
-                        <div class="info-item">
-                            <label class="info-label">Email Address</label>
-                            <div class="info-value"><?= htmlspecialchars($user['email']) ?></div>
+                        
+                        <div class="info-item mb-3">
+                            <label class="form-label text-muted small">Email</label>
+                            <div><?= htmlspecialchars($user['email']) ?></div>
                         </div>
-                        <div class="info-item">
-                            <label class="info-label">Account Status</label>
-                            <div class="info-value">
+                        
+                        <div class="info-item mb-3">
+                            <label class="form-label text-muted small">Status</label>
+                            <div>
                                 <?php if ($user['status'] === 'active'): ?>
-                                    <span class="badge bg-success">Active</span>
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle me-1"></i>Active
+                                    </span>
                                 <?php else: ?>
-                                    <span class="badge bg-warning">Inactive</span>
+                                    <span class="badge bg-warning">
+                                        <i class="bi bi-pause-circle me-1"></i>Inactive
+                                    </span>
                                 <?php endif; ?>
                             </div>
                         </div>
-                        <div class="info-item">
-                            <label class="info-label">Member Since</label>
-                            <div class="info-value"><?= format_date($user['created_at'], 'F j, Y') ?></div>
+                        
+                        <div class="info-item mb-3">
+                            <label class="form-label text-muted small">Member Since</label>
+                            <div><?= format_date($user['created_at'], 'F j, Y') ?></div>
                         </div>
-                        <div class="info-item">
-                            <label class="info-label">Last Login</label>
-                            <div class="info-value">
-                                <?= $user['last_login'] ? format_date($user['last_login'], 'M j, Y g:i A') : 'Never logged in' ?>
-                            </div>
+                        
+                        <div class="info-item mb-3">
+                            <label class="form-label text-muted small">Last Login</label>
+                            <div><?= $user['last_login'] ? format_date($user['last_login'], 'M j, Y g:i A') : 'Never logged in' ?></div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Quick Actions -->
-                <div class="feature-card mb-4">
-                    <h5 class="mb-3">Quick Actions</h5>
+                    
+                    <hr class="my-4" style="border-color: #333;">
+                    
+                    <h6 class="mb-3 text-muted">Actions</h6>
                     <div class="d-grid gap-2">
-                        <button class="btn btn-glow" onclick="viewUserMusic()">
+                        <a href="/admin/users/<?= $user['id'] ?>/music" class="btn btn-glow">
                             <i class="bi bi-music-note-list me-2"></i>View Music Collection
-                        </button>
-                        <button class="btn btn-outline-glow" onclick="sendMessage()">
-                            <i class="bi bi-envelope me-2"></i>Send Message
-                        </button>
+                        </a>
                         <button class="btn btn-outline-warning" onclick="editUser()">
                             <i class="bi bi-pencil me-2"></i>Edit Account
                         </button>
                         <?php if ($user['status'] === 'active'): ?>
-                            <button class="btn btn-outline-secondary" onclick="suspendUser()">
+                            <button class="btn btn-outline-secondary" onclick="toggleUserStatus(<?= $user['id'] ?>)">
                                 <i class="bi bi-pause-circle me-2"></i>Suspend Account
                             </button>
                         <?php else: ?>
-                            <button class="btn btn-outline-success" onclick="activateUser()">
+                            <button class="btn btn-outline-success" onclick="toggleUserStatus(<?= $user['id'] ?>)">
                                 <i class="bi bi-check-circle me-2"></i>Activate Account
                             </button>
                         <?php endif; ?>
-                        <button class="btn btn-outline-danger" onclick="deleteUser()">
-                            <i class="bi bi-trash me-2"></i>Delete Account
-                        </button>
                     </div>
                 </div>
 
-                <!-- System Notes -->
+                <!-- Admin Notes (Collapsible) -->
                 <div class="feature-card">
-                    <h5 class="mb-3">Admin Notes</h5>
-                    <textarea class="form-control form-control-dark mb-3" rows="4" 
-                              placeholder="Add admin notes about this user..."></textarea>
-                    <button class="btn btn-outline-glow btn-sm w-100">
-                        <i class="bi bi-save me-1"></i>Save Notes
-                    </button>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Admin Notes</h5>
+                        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#adminNotes" aria-expanded="false">
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                    </div>
+                    <div class="collapse" id="adminNotes">
+                        <textarea class="form-control form-control-dark mb-3" rows="4" id="adminNotesText"
+                                  placeholder="Add admin notes about this user..."></textarea>
+                        <button class="btn btn-outline-glow btn-sm w-100" onclick="saveAdminNotes(<?= $user['id'] ?>)">
+                            <i class="bi bi-save me-1"></i>Save Notes
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -237,22 +245,22 @@
             <div class="modal-body">
                 <div class="mb-3">
                     <label class="form-label">First Name</label>
-                    <input type="text" class="form-control form-control-dark" 
-                           value="<?= htmlspecialchars($user['first_name']) ?>">
+                    <input type="text" id="edit_first_name" class="form-control form-control-dark"
+                           value="<?= htmlspecialchars($user['first_name']) ?>" required>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Last Name</label>
-                    <input type="text" class="form-control form-control-dark" 
-                           value="<?= htmlspecialchars($user['last_name']) ?>">
+                    <input type="text" id="edit_last_name" class="form-control form-control-dark"
+                           value="<?= htmlspecialchars($user['last_name']) ?>" required>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Email Address</label>
-                    <input type="email" class="form-control form-control-dark" 
-                           value="<?= htmlspecialchars($user['email']) ?>">
+                    <input type="email" id="edit_email" class="form-control form-control-dark"
+                           value="<?= htmlspecialchars($user['email']) ?>" required>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Account Status</label>
-                    <select class="form-select form-select-dark">
+                    <select id="edit_status" class="form-select form-select-dark">
                         <option value="active" <?= $user['status'] === 'active' ? 'selected' : '' ?>>Active</option>
                         <option value="inactive" <?= $user['status'] === 'inactive' ? 'selected' : '' ?>>Inactive</option>
                     </select>
@@ -260,7 +268,7 @@
             </div>
             <div class="modal-footer border-secondary">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-glow">Save Changes</button>
+                <button type="button" class="btn btn-glow" onclick="saveUserChanges()">Save Changes</button>
             </div>
         </div>
     </div>
@@ -273,36 +281,148 @@
         const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
         modal.show();
     }
-    
+
+    function saveUserChanges() {
+        const userId = <?= $user['id'] ?>;
+        const firstName = document.getElementById('edit_first_name').value.trim();
+        const lastName = document.getElementById('edit_last_name').value.trim();
+        const email = document.getElementById('edit_email').value.trim();
+        const status = document.getElementById('edit_status').value;
+
+        // Validate inputs
+        if (!firstName || !lastName || !email) {
+            MusicLocker.showToast('All fields are required', 'error');
+            return;
+        }
+
+        if (!email.includes('@')) {
+            MusicLocker.showToast('Please enter a valid email address', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('user_id', userId);
+        formData.append('first_name', firstName);
+        formData.append('last_name', lastName);
+        formData.append('email', email);
+        formData.append('status', status);
+        formData.append('_token', '<?= csrf_token() ?>');
+
+        fetch('/admin/user/update', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                MusicLocker.showToast(data.message, 'success');
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editUserModal'));
+                modal.hide();
+                // Reload page after delay
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                MusicLocker.showToast(data.message || 'Failed to update user', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            MusicLocker.showToast('An error occurred', 'error');
+        });
+    }
+
     function deleteUser() {
-        if (confirm('Are you sure you want to delete this user account? This action cannot be undone.')) {
-            // In a real implementation, this would make an AJAX call
-            alert('Delete functionality would be implemented here');
+        const userId = <?= $user['id'] ?>;
+        const userName = '<?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?>';
+
+        if (!confirm(`Are you sure you want to delete ${userName}?\n\nThis action cannot be undone. All user data including music entries will be permanently deleted.`)) {
+            return;
         }
+
+        const formData = new FormData();
+        formData.append('user_id', userId);
+        formData.append('_token', '<?= csrf_token() ?>');
+
+        fetch('/admin/user/delete', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                MusicLocker.showToast(data.message, 'success');
+                // Redirect to users list after delay
+                setTimeout(() => window.location.href = '/admin/users', 1500);
+            } else {
+                MusicLocker.showToast(data.message || 'Failed to delete user', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            MusicLocker.showToast('An error occurred', 'error');
+        });
     }
-    
-    function suspendUser() {
-        if (confirm('Are you sure you want to suspend this user account?')) {
-            alert('Suspend functionality would be implemented here');
+
+    function toggleUserStatus(userId) {
+        const action = '<?= $user['status'] === 'active' ? 'suspend' : 'activate' ?>';
+        const confirmMsg = action === 'suspend' 
+            ? 'Are you sure you want to suspend this user account? They will not be able to log in.'
+            : 'Are you sure you want to activate this user account?';
+            
+        if (!confirm(confirmMsg)) {
+            return;
         }
+
+        const formData = new FormData();
+        formData.append('user_id', userId);
+        formData.append('_token', '<?= csrf_token() ?>');
+
+        fetch('/admin/user/toggle-status', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                MusicLocker.showToast(data.message, 'success');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                MusicLocker.showToast(data.message || 'Failed to toggle status', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            MusicLocker.showToast('An error occurred', 'error');
+        });
     }
     
-    function activateUser() {
-        if (confirm('Are you sure you want to activate this user account?')) {
-            alert('Activate functionality would be implemented here');
-        }
-    }
-    
-    function viewUserMusic() {
-        alert('This would redirect to the user\'s music collection');
-    }
-    
-    function sendMessage() {
-        alert('Message functionality would be implemented here');
+    function saveAdminNotes(userId) {
+        const notes = document.getElementById('adminNotesText').value;
+        
+        const formData = new FormData();
+        formData.append('user_id', userId);
+        formData.append('notes', notes);
+        formData.append('_token', '<?= csrf_token() ?>');
+
+        fetch('/admin/user/save-notes', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                MusicLocker.showToast('Notes saved successfully', 'success');
+            } else {
+                MusicLocker.showToast(data.message || 'Failed to save notes', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            MusicLocker.showToast('An error occurred', 'error');
+        });
     }
     
     function refreshActivity() {
-        // In a real implementation, this would reload activity data
         location.reload();
     }
 </script>

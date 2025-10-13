@@ -29,9 +29,9 @@ class MusicEntry
         try {
             $sql = "INSERT INTO music_entries (
                         user_id, title, artist, album, genre, release_year, duration,
-                        spotify_id, spotify_url, album_art_url, preview_url, external_urls,
+                        spotify_id, spotify_url, album_art_url,
                         personal_rating, date_discovered, is_favorite
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             
             $stmt = $this->db->prepare($sql);
             $result = $stmt->execute([
@@ -39,15 +39,13 @@ class MusicEntry
                 $data['title'],
                 $data['artist'],
                 $data['album'] ?? null,
-                $data['genre'] ?? null,
+                $data['genre'] ?? 'Unknown',
                 $data['release_year'] ?? null,
                 $data['duration'] ?? null,
                 $data['spotify_id'] ?? null,
                 $data['spotify_url'] ?? null,
                 $data['album_art_url'] ?? null,
-                $data['preview_url'] ?? null,
-                $data['external_urls'] ?? null,
-                $data['personal_rating'] ?? null,
+                $data['personal_rating'] ?? 3,
                 $data['date_discovered'] ?? date('Y-m-d'),
                 $data['is_favorite'] ?? false
             ]);
@@ -149,11 +147,15 @@ class MusicEntry
             $params = [$userId];
             $conditions = [];
             
-            // Add search filter
+            // Add search filter (includes title, artist, album, and tag names)
             if (!empty($options['search'])) {
-                $conditions[] = "(me.title LIKE ? OR me.artist LIKE ? OR me.album LIKE ?)";
+                $conditions[] = "(me.title LIKE ? OR me.artist LIKE ? OR me.album LIKE ? OR me.id IN (
+                    SELECT DISTINCT met.music_entry_id FROM music_entry_tags met 
+                    JOIN tags t ON met.tag_id = t.id 
+                    WHERE t.name LIKE ?
+                ))";
                 $searchTerm = '%' . $options['search'] . '%';
-                $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm]);
+                $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm]);
             }
             
             // Add genre filter
@@ -173,9 +175,10 @@ class MusicEntry
                 $conditions[] = "me.is_favorite = TRUE";
             }
             
-            // Add tag filter
-            if (!empty($options['tag_ids'])) {
-                $tagIds = is_array($options['tag_ids']) ? $options['tag_ids'] : [$options['tag_ids']];
+            // Add tag filter (supports both 'tag' and 'tag_ids' for backwards compatibility)
+            $tagFilter = $options['tag'] ?? $options['tag_ids'] ?? null;
+            if (!empty($tagFilter)) {
+                $tagIds = is_array($tagFilter) ? $tagFilter : [$tagFilter];
                 $placeholders = str_repeat('?,', count($tagIds) - 1) . '?';
                 $conditions[] = "me.id IN (SELECT DISTINCT met.music_entry_id FROM music_entry_tags met WHERE met.tag_id IN ($placeholders))";
                 $params = array_merge($params, $tagIds);
@@ -205,7 +208,7 @@ class MusicEntry
             
             $allowedSortFields = [
                 'date_added', 'title', 'artist', 'album', 'personal_rating', 
-                'release_year', 'last_played', 'times_played'
+                'release_year'
             ];
             
             if (in_array($sortBy, $allowedSortFields)) {
@@ -258,6 +261,26 @@ class MusicEntry
     }
     
     /**
+     * Get a simple list of a user's music entries (utility for admin views)
+     * Returns only the entries array, sorted by most recent first.
+     */
+    public function getUserEntries(int $userId, int $limit = 200, int $offset = 0): array
+    {
+        try {
+            $result = $this->getUserCollection($userId, [
+                'limit' => $limit,
+                'offset' => $offset,
+                'sort_by' => 'date_added',
+                'sort_order' => 'DESC'
+            ]);
+            return $result['entries'] ?? [];
+        } catch (Exception $e) {
+            error_log("getUserEntries error: " . $e->getMessage());
+            return [];
+        }
+    }
+    
+    /**
      * Update music entry
      */
     public function update(int $id, array $data, int $userId = null): bool
@@ -268,8 +291,8 @@ class MusicEntry
             
             $allowedFields = [
                 'title', 'artist', 'album', 'genre', 'release_year', 'duration',
-                'personal_rating', 'date_discovered', 'is_favorite', 'times_played',
-                'last_played', 'spotify_url', 'album_art_url', 'preview_url', 'external_urls'
+                'personal_rating', 'date_discovered', 'is_favorite',
+                'spotify_url', 'album_art_url'
             ];
             
             foreach ($allowedFields as $field) {
@@ -381,23 +404,13 @@ class MusicEntry
     }
     
     /**
-     * Update play count and last played timestamp
+     * Record play - functionality removed as times_played and last_played are deprecated
+     * Keeping method for backwards compatibility but it does nothing
      */
     public function recordPlay(int $id, int $userId): bool
     {
-        try {
-            $sql = "UPDATE music_entries 
-                    SET times_played = times_played + 1, 
-                        last_played = NOW(),
-                        updated_at = NOW()
-                    WHERE id = ? AND user_id = ?";
-            
-            return $this->db->execute($sql, [$id, $userId]);
-            
-        } catch (Exception $e) {
-            error_log("Record play error: " . $e->getMessage());
-            return false;
-        }
+        // Deprecated - times_played and last_played columns removed from database
+        return true;
     }
     
     /**
@@ -430,12 +443,10 @@ class MusicEntry
                         COUNT(CASE WHEN personal_rating = 5 THEN 1 END) as five_star_count,
                         COUNT(CASE WHEN is_favorite = TRUE THEN 1 END) as favorites_count,
                         COUNT(CASE WHEN date_added >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 END) as recent_additions,
-                        COUNT(CASE WHEN last_played >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 END) as recently_played,
                         AVG(CASE WHEN personal_rating IS NOT NULL THEN personal_rating END) as average_rating,
                         COUNT(DISTINCT artist) as unique_artists,
                         COUNT(DISTINCT album) as unique_albums,
                         COUNT(DISTINCT genre) as unique_genres,
-                        SUM(times_played) as total_plays,
                         MAX(date_added) as latest_addition,
                         MIN(release_year) as earliest_year,
                         MAX(release_year) as latest_year
@@ -449,12 +460,10 @@ class MusicEntry
                 'five_star_count' => (int)($result['five_star_count'] ?? 0),
                 'favorites_count' => (int)($result['favorites_count'] ?? 0),
                 'recent_additions' => (int)($result['recent_additions'] ?? 0),
-                'recently_played' => (int)($result['recently_played'] ?? 0),
                 'average_rating' => round((float)($result['average_rating'] ?? 0), 1),
                 'unique_artists' => (int)($result['unique_artists'] ?? 0),
                 'unique_albums' => (int)($result['unique_albums'] ?? 0),
                 'unique_genres' => (int)($result['unique_genres'] ?? 0),
-                'total_plays' => (int)($result['total_plays'] ?? 0),
                 'latest_addition' => $result['latest_addition'],
                 'earliest_year' => $result['earliest_year'],
                 'latest_year' => $result['latest_year']
@@ -474,7 +483,7 @@ class MusicEntry
         try {
             $sql = "SELECT genre, COUNT(*) as count 
                     FROM music_entries 
-                    WHERE user_id = ? AND genre IS NOT NULL 
+                    WHERE user_id = ? AND genre IS NOT NULL AND genre != '' AND TRIM(genre) != ''
                     GROUP BY genre 
                     ORDER BY count DESC, genre ASC 
                     LIMIT ?";
@@ -493,11 +502,11 @@ class MusicEntry
     public function getTopArtists(int $userId, int $limit = 10): array
     {
         try {
-            $sql = "SELECT artist, COUNT(*) as entry_count, SUM(times_played) as total_plays
+            $sql = "SELECT artist, COUNT(*) as entry_count
                     FROM music_entries 
                     WHERE user_id = ? 
                     GROUP BY artist 
-                    ORDER BY entry_count DESC, total_plays DESC, artist ASC 
+                    ORDER BY entry_count DESC, artist ASC 
                     LIMIT ?";
             
             return $this->db->query($sql, [$userId, $limit]);
@@ -532,11 +541,24 @@ class MusicEntry
             }
         }
         
-        // Optional field validations
-        if (!empty($data['personal_rating'])) {
-            $rating = (int)$data['personal_rating'];
-            if ($rating < 1 || $rating > 5) {
-                $errors['personal_rating'] = 'Rating must be between 1 and 5 stars';
+        // Personal rating is now required
+        if (isset($rules['personal_rating']) && $rules['personal_rating']) {
+            if (empty($data['personal_rating'])) {
+                $errors['personal_rating'] = 'Personal rating is required';
+            } else {
+                $rating = (int)$data['personal_rating'];
+                if ($rating < 1 || $rating > 5) {
+                    $errors['personal_rating'] = 'Rating must be between 1 and 5 stars';
+                }
+            }
+        }
+        
+        // Genre is now required
+        if (isset($rules['genre']) && $rules['genre']) {
+            if (empty($data['genre'])) {
+                $errors['genre'] = 'Genre is required';
+            } elseif (strlen($data['genre']) > 100) {
+                $errors['genre'] = 'Genre is too long (max 100 characters)';
             }
         }
         
@@ -590,16 +612,6 @@ class MusicEntry
         // Format dates
         if ($entry['date_added']) {
             $entry['date_added_formatted'] = format_date($entry['date_added']);
-        }
-        
-        if ($entry['last_played']) {
-            $entry['last_played_formatted'] = format_datetime($entry['last_played']);
-            $entry['last_played_ago'] = time_ago($entry['last_played']);
-        }
-        
-        // Format external URLs
-        if (!empty($entry['external_urls'])) {
-            $entry['external_urls'] = json_decode($entry['external_urls'], true) ?? [];
         }
         
         // Boolean conversions

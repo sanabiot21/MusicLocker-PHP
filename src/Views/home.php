@@ -19,7 +19,9 @@
             </div>
             <div class="col-lg-6 text-center">
                 <div class="hero-image">
-                    <img src="<?= asset_url('img/vinyl-record.svg') ?>" alt="Vinyl Record" class="img-fluid pulse-glow" style="max-width: 300px; width: 100%;">
+                    <div class="vinyl-logo-container">
+                        <img src="<?= asset_url('img/vinyl-record.svg') ?>" alt="Music Locker Vinyl Logo" class="vinyl-logo">
+                    </div>
                 </div>
             </div>
         </div>
@@ -106,18 +108,7 @@
                 </div>
             </div>
             
-            <div class="col-md-6 col-lg-4">
-                <div class="feature-card text-center">
-                    <div class="feature-icon">
-                        <i class="bi bi-download"></i>
-                    </div>
-                    <h4 class="feature-title">Export Your Data</h4>
-                    <p class="feature-description">
-                        Your data belongs to you. Export your entire collection for personal 
-                        backup whenever you need it.
-                    </p>
-                </div>
-            </div>
+            
         </div>
     </div>
 </section>
@@ -156,25 +147,25 @@
         <div class="row text-center g-4">
             <div class="col-md-3 col-sm-6">
                 <div class="stat-item">
-                    <div class="stat-number" style="color: var(--accent-blue);">0</div>
+                    <div class="stat-number" style="color: var(--accent-blue);"><?php echo number_format($stats['active_users'] ?? 0); ?></div>
                     <div class="stat-label text-muted">Active Users</div>
                 </div>
             </div>
             <div class="col-md-3 col-sm-6">
                 <div class="stat-item">
-                    <div class="stat-number" style="color: var(--accent-purple);">0</div>
+                    <div class="stat-number" style="color: var(--accent-purple);\"><?php echo number_format($stats['songs_cataloged'] ?? 0); ?></div>
                     <div class="stat-label text-muted">Songs Cataloged</div>
                 </div>
             </div>
             <div class="col-md-3 col-sm-6">
                 <div class="stat-item">
-                    <div class="stat-number" style="color: var(--accent-blue);">0</div>
+                    <div class="stat-number" style="color: var(--accent-blue);\"><?php echo number_format($stats['personal_notes'] ?? 0); ?></div>
                     <div class="stat-label text-muted">Personal Notes</div>
                 </div>
             </div>
             <div class="col-md-3 col-sm-6">
                 <div class="stat-item">
-                    <div class="stat-number" style="color: var(--accent-purple);">0</div>
+                    <div class="stat-number" style="color: var(--accent-purple);\"><?php echo number_format($stats['mood_tags_created'] ?? 0); ?></div>
                     <div class="stat-label text-muted">Mood Tags Created</div>
                 </div>
             </div>
@@ -185,31 +176,163 @@
 <!-- Additional CSS for home page -->
 <?php ob_start(); ?>
 <style>
+    /* Vinyl Logo Container with Glowing Border */
+    .hero-image {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 2;
+    }
+
+    .vinyl-logo-container {
+        position: relative;
+        animation: vinyl-rotate 60s linear infinite;
+        width: 350px;
+        height: 350px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .vinyl-logo {
+        width: 100%;
+        height: 100%;
+        display: block;
+        position: relative;
+        z-index: 2;
+        filter: drop-shadow(0 0 25px rgba(0, 212, 255, 0.5));
+    }
+
+    .vinyl-logo-container::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: calc(100% + 20px);
+        height: calc(100% + 20px);
+        border-radius: 50%;
+        padding: 4px;
+        background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 50%, var(--accent-blue) 100%);
+        -webkit-mask:
+            linear-gradient(#fff 0 0) content-box,
+            linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        animation: border-glow 3s ease-in-out infinite, gradient-rotate 8s linear infinite;
+        z-index: 1;
+    }
+
+    .vinyl-logo-container::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: calc(100% + 40px);
+        height: calc(100% + 40px);
+        border-radius: 50%;
+        background: radial-gradient(circle, var(--accent-blue) 0%, var(--accent-purple) 50%, transparent 70%);
+        opacity: 0.4;
+        filter: blur(30px);
+        animation: pulse-glow 2.5s ease-in-out infinite;
+        z-index: 0;
+    }
+
+    @keyframes border-glow {
+        0%, 100% {
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.6),
+                        0 0 60px rgba(138, 43, 226, 0.4),
+                        inset 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+        50% {
+            box-shadow: 0 0 40px rgba(138, 43, 226, 0.6),
+                        0 0 70px rgba(0, 212, 255, 0.4),
+                        inset 0 0 30px rgba(138, 43, 226, 0.2);
+        }
+    }
+
+    @keyframes pulse-glow {
+        0%, 100% {
+            opacity: 0.3;
+            transform: scale(0.95);
+        }
+        50% {
+            opacity: 0.5;
+            transform: scale(1.05);
+        }
+    }
+
+    @keyframes vinyl-rotate {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @keyframes gradient-rotate {
+        0% {
+            background: linear-gradient(0deg, var(--accent-blue) 0%, var(--accent-purple) 50%, var(--accent-blue) 100%);
+        }
+        25% {
+            background: linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-purple) 50%, var(--accent-blue) 100%);
+        }
+        50% {
+            background: linear-gradient(180deg, var(--accent-blue) 0%, var(--accent-purple) 50%, var(--accent-blue) 100%);
+        }
+        75% {
+            background: linear-gradient(270deg, var(--accent-blue) 0%, var(--accent-purple) 50%, var(--accent-blue) 100%);
+        }
+        100% {
+            background: linear-gradient(360deg, var(--accent-blue) 0%, var(--accent-purple) 50%, var(--accent-blue) 100%);
+        }
+    }
+
+    /* Pause rotation on hover */
+    .vinyl-logo-container:hover {
+        animation-play-state: paused;
+    }
+
+    @media (max-width: 992px) {
+        .vinyl-logo-container {
+            width: 300px;
+            height: 300px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .vinyl-logo-container {
+            width: 280px;
+            height: 280px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .vinyl-logo-container {
+            width: 240px;
+            height: 240px;
+        }
+    }
+
     .bg-gradient-section {
         background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(138, 43, 226, 0.1) 100%);
         border-top: 1px solid rgba(0, 212, 255, 0.2);
         border-bottom: 1px solid rgba(138, 43, 226, 0.2);
     }
-    
-    .stat-item {
-        padding: 2rem 1rem;
-    }
-    
+
+    /* Page-specific stat number size for home hero */
     .stat-number {
         font-size: 3rem;
-        font-weight: 700;
-        line-height: 1;
-        margin-bottom: 0.5rem;
-        font-family: 'Kode Mono', monospace;
     }
-    
+
     .stat-label {
         font-size: 1rem;
-        font-weight: 500;
-        text-transform: uppercase;
         letter-spacing: 1px;
     }
-    
+
     .feature-icon {
         font-size: 3rem;
         margin-bottom: 1.5rem;
@@ -218,13 +341,13 @@
         -webkit-text-fill-color: transparent;
         background-clip: text;
     }
-    
+
     .feature-title {
         color: var(--text-light);
         margin-bottom: 1rem;
         font-weight: 600;
     }
-    
+
     .feature-description {
         color: var(--text-gray);
         line-height: 1.6;
@@ -236,15 +359,35 @@
         display: flex;
         align-items: center;
     }
-    
-    @media (max-width: 768px) {
+
+    @media (max-width: 991px) {
         .hero-section {
             padding: 6rem 0 4rem;
             min-height: auto;
         }
-        
+
+        .hero-content {
+            margin-bottom: 3rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 5rem 0 3rem;
+        }
+
+        .hero-content {
+            margin-bottom: 2.5rem;
+        }
+
         .stat-number {
             font-size: 2rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .hero-content {
+            margin-bottom: 2rem;
         }
     }
 </style>

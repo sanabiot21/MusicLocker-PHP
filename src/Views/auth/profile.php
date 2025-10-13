@@ -1,5 +1,5 @@
 <!-- Profile Section -->
-<section class="py-5" style="margin-top: 80px;">
+<section class="py-5" style="margin-top: 80px; margin-bottom: 5rem;">
     <div class="container">
         <div class="row">
             <!-- Profile Header -->
@@ -42,25 +42,25 @@
                     <h4 class="mb-4">Your Music Statistics</h4>
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <div class="stat-item text-center p-3 rounded" style="background: rgba(0, 212, 255, 0.1);">
+                            <div class="stat-item text-center p-2 rounded" style="background: rgba(0, 212, 255, 0.1);">
                                 <div class="stat-number text-primary"><?= number_format($userStats['total_entries'] ?? 0) ?></div>
                                 <div class="stat-label">Total Songs</div>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="stat-item text-center p-3 rounded" style="background: rgba(138, 43, 226, 0.1);">
+                            <div class="stat-item text-center p-2 rounded" style="background: rgba(138, 43, 226, 0.1);">
                                 <div class="stat-number" style="color: var(--accent-purple);"><?= number_format($userStats['favorite_entries'] ?? 0) ?></div>
                                 <div class="stat-label">Favorites</div>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="stat-item text-center p-3 rounded" style="background: rgba(254, 202, 87, 0.1);">
+                            <div class="stat-item text-center p-2 rounded" style="background: rgba(254, 202, 87, 0.1);">
                                 <div class="stat-number text-warning"><?= number_format($userStats['five_star_entries'] ?? 0) ?></div>
                                 <div class="stat-label">5-Star Songs</div>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="stat-item text-center p-3 rounded" style="background: rgba(78, 205, 196, 0.1);">
+                            <div class="stat-item text-center p-2 rounded" style="background: rgba(78, 205, 196, 0.1);">
                                 <div class="stat-number" style="color: #4ecdc4;"><?= number_format($userStats['unique_artists'] ?? 0) ?></div>
                                 <div class="stat-label">Unique Artists</div>
                             </div>
@@ -83,43 +83,39 @@
                     <?php endif; ?>
                 </div>
 
-                <!-- Recent Activity Placeholder -->
-                <div class="feature-card">
-                    <h4 class="mb-4">Recent Activity</h4>
-                    <div class="text-center py-4 text-muted">
-                        <i class="bi bi-clock-history display-4 mb-3"></i>
-                        <p>Your recent music activity will appear here</p>
-                        <p class="small">Add songs to see your activity timeline</p>
-                    </div>
-                </div>
+                
             </div>
 
             <!-- Sidebar -->
             <div class="col-lg-4">
-                <!-- Account Information -->
-                <div class="feature-card mb-4">
-                    <h5 class="mb-3">Account Information</h5>
-                    <div class="mb-3">
-                        <label class="form-label text-muted small">Account Status</label>
-                        <div>
-                            <span class="badge bg-success">
-                                <i class="bi bi-check-circle me-1"></i><?= ucfirst($user['status']) ?>
-                            </span>
+                <!-- Unified Account Status Card -->
+                <div class="feature-card">
+                    <h5 class="mb-4">Account Status</h5>
+                    
+                    <div class="info-group">
+                        <div class="info-item mb-3">
+                            <label class="form-label text-muted small">Status</label>
+                            <div>
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle me-1"></i><?= ucfirst($user['status']) ?>
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="info-item mb-3">
+                            <label class="form-label text-muted small">Last Login</label>
+                            <div><?= $user['last_login'] ? format_date($user['last_login'], 'M j, Y g:i A') : 'First login!' ?></div>
+                        </div>
+                        
+                        <div class="info-item mb-3">
+                            <label class="form-label text-muted small">Member Since</label>
+                            <div><?= format_date($user['created_at'], 'F j, Y') ?></div>
                         </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label text-muted small">Last Login</label>
-                        <div><?= $user['last_login'] ? format_date($user['last_login'], 'M j, Y g:i A') : 'First login!' ?></div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label text-muted small">Member Since</label>
-                        <div><?= format_date($user['created_at'], 'F j, Y') ?></div>
-                    </div>
-                </div>
-
-                <!-- Quick Actions -->
-                <div class="feature-card">
-                    <h5 class="mb-3">Quick Actions</h5>
+                    
+                    <hr class="my-4" style="border-color: #333;">
+                    
+                    <h6 class="mb-3 text-muted">Quick Actions</h6>
                     <div class="d-grid gap-2">
                         <a href="<?= route_url('music.add') ?>" class="btn btn-glow">
                             <i class="bi bi-plus-circle me-2"></i>Add New Song
@@ -127,9 +123,6 @@
                         <a href="<?= route_url('music.index') ?>" class="btn btn-outline-glow">
                             <i class="bi bi-music-note-list me-2"></i>View Collection
                         </a>
-                        <button class="btn btn-outline-secondary" onclick="alert('Export feature coming soon!')">
-                            <i class="bi bi-download me-2"></i>Export Data
-                        </button>
                         <a href="<?= route_url('dashboard') ?>" class="btn btn-outline-secondary">
                             <i class="bi bi-speedometer2 me-2"></i>Dashboard
                         </a>
@@ -227,7 +220,7 @@
     document.getElementById('confirm_new_password').addEventListener('input', function() {
         const newPassword = document.getElementById('new_password').value;
         const confirmPassword = this.value;
-        
+
         if (confirmPassword && newPassword !== confirmPassword) {
             this.setCustomValidity('Passwords do not match');
         } else {
@@ -235,52 +228,6 @@
         }
     });
 </script>
-<?php 
+<?php
 $additional_js = ob_get_clean();
-?>
-
-<!-- Additional CSS -->
-<?php ob_start(); ?>
-<style>
-    .stat-number {
-        font-size: 2rem;
-        font-weight: 700;
-        line-height: 1;
-        margin-bottom: 0.5rem;
-        font-family: 'Kode Mono', monospace;
-    }
-    
-    .stat-label {
-        font-size: 0.9rem;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--text-gray);
-    }
-    
-    .profile-avatar {
-        width: 80px;
-        height: 80px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .modal-content {
-        border: 1px solid #333;
-    }
-    
-    @media (max-width: 768px) {
-        .profile-avatar {
-            width: 60px;
-            height: 60px;
-        }
-        
-        .stat-number {
-            font-size: 1.5rem;
-        }
-    }
-</style>
-<?php 
-$additional_css = ob_get_clean();
 ?>

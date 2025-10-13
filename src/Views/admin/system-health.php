@@ -15,7 +15,7 @@
                         </div>
                         <div class="col-md-4 text-md-end">
                             <div class="btn-group" role="group">
-                                <a href="<?= route_url('admin') ?>" class="btn btn-outline-secondary">
+                                <a href="/admin" class="btn btn-outline-secondary">
                                     <i class="bi bi-arrow-left me-1"></i>Dashboard
                                 </a>
                                 <button class="btn btn-glow" onclick="refreshHealth()">

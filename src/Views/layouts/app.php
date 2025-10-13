@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<?= csrf_token() ?>">
     <title><?= htmlspecialchars($title ?? 'Music Locker') ?></title>
     
     <!-- Bootstrap 5 CSS -->
@@ -23,9 +24,11 @@
     $protocol = $isNgrok ? 'https' : ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http');
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
     $cssUrl = $protocol . '://' . $host . '/assets/css/dark-techno-theme.css';
+    $componentsUrl = $protocol . '://' . $host . '/assets/css/components.css';
     ?>
     <link rel="stylesheet" href="<?= $cssUrl ?>">
-    
+    <link rel="stylesheet" href="<?= $componentsUrl ?>">
+
     <?= $additional_css ?? '' ?>
 </head>
 <body class="bg-pattern">
@@ -38,6 +41,10 @@
             <a class="navbar-brand" href="<?= route_url('home') ?>">
                 <i class="bi bi-music-note-beamed me-2"></i>Music Locker
             </a>
+            <!-- Offline Status Indicator -->
+            <span id="offline-indicator" class="badge bg-warning text-dark ms-2" style="display: none;">
+                <i class="bi bi-wifi-off me-1"></i>Offline
+            </span>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -46,6 +53,25 @@
                 <ul class="navbar-nav ms-auto">
                     <?php if ($is_logged_in): ?>
                         <!-- Authenticated Navigation -->
+                        <?php if (is_admin()): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?= $current_page === 'admin' ? 'active' : '' ?>" href="/admin">
+                                <i class="bi bi-shield-check me-1"></i>Admin Panel
+                                <?php
+                                $pendingResets = 0;
+                                try {
+                                    $userModel = new \MusicLocker\Models\User();
+                                    $pendingResets = $userModel->countPendingResetRequests();
+                                } catch (Exception $e) {
+                                    // Silently fail
+                                }
+                                if ($pendingResets > 0):
+                                ?>
+                                <span class="badge rounded-pill bg-danger ms-1"><?= $pendingResets ?></span>
+                                <?php endif; ?>
+                            </a>
+                        </li>
+                        <?php endif; ?>
                         <li class="nav-item">
                             <a class="nav-link <?= $current_page === 'dashboard' ? 'active' : '' ?>" href="<?= route_url('dashboard') ?>">
                                 <i class="bi bi-speedometer2 me-1"></i>Dashboard
@@ -54,6 +80,11 @@
                         <li class="nav-item">
                             <a class="nav-link <?= $current_page === 'music' ? 'active' : '' ?>" href="<?= route_url('music.index') ?>">
                                 <i class="bi bi-music-note-list me-1"></i>My Music
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?= $current_page === 'playlists' ? 'active' : '' ?>" href="<?= route_url('playlists') ?>">
+                                <i class="bi bi-collection-play me-1"></i>Playlists
                             </a>
                         </li>
                         <li class="nav-item dropdown">
@@ -93,29 +124,7 @@
         </div>
     </nav>
 
-    <!-- Flash Messages -->
-    <?php if (!empty($flash_messages)): ?>
-        <div class="container mt-5 pt-4">
-            <?php foreach ($flash_messages as $type => $message): ?>
-                <?php if ($type !== 'validation_errors' && $type !== 'old_input'): ?>
-                    <div class="alert alert-<?= $type === 'error' ? 'danger' : $type ?> alert-dismissible fade show" role="alert">
-                        <?php
-                        $icon = match($type) {
-                            'success' => 'bi-check-circle',
-                            'error', 'danger' => 'bi-exclamation-triangle',
-                            'warning' => 'bi-exclamation-circle',
-                            'info' => 'bi-info-circle',
-                            default => 'bi-info-circle'
-                        };
-                        ?>
-                        <i class="bi <?= $icon ?> me-2"></i>
-                        <?= htmlspecialchars($message) ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                <?php endif; ?>
-            <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
+    
 
     <!-- Main Content -->
     <main id="main-content" class="<?= $main_class ?? '' ?>">
@@ -142,8 +151,12 @@
                                 <a href="<?= route_url('register') ?>" class="text-muted text-decoration-none">Register</a>
                                 <a href="<?= route_url('login') ?>" class="text-muted text-decoration-none">Login</a>
                             <?php else: ?>
+                                <?php if (is_admin()): ?>
+                                    <a href="/admin" class="text-muted text-decoration-none">Admin Panel</a>
+                                <?php endif; ?>
                                 <a href="<?= route_url('dashboard') ?>" class="text-muted text-decoration-none">Dashboard</a>
                                 <a href="<?= route_url('music.index') ?>" class="text-muted text-decoration-none">My Music</a>
+                                <a href="/playlists" class="text-muted text-decoration-none">Playlists</a>
                             <?php endif; ?>
                         </div>
                         <hr class="my-4" style="border-color: #333;">
@@ -165,20 +178,15 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-    
+
+    <!-- Offline Manager (must load before other scripts) -->
+    <script src="/assets/js/offline-manager.js"></script>
+
+    <!-- Sync Queue Manager -->
+    <script src="/assets/js/sync-queue.js"></script>
+
     <!-- Custom JavaScript -->
     <script>
-        // Auto-dismiss alerts after 5 seconds
-        document.addEventListener('DOMContentLoaded', function() {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(function(alert) {
-                setTimeout(function() {
-                    const bsAlert = new bootstrap.Alert(alert);
-                    bsAlert.close();
-                }, 5000);
-            });
-        });
-
         // Add spinning animation for loading states
         const spinnerStyle = document.createElement('style');
         spinnerStyle.textContent = `
@@ -289,8 +297,38 @@
                     });
             }
         };
+
+        // Emit server flash messages as overlay toasts
+        document.addEventListener('DOMContentLoaded', function() {
+            <?php if (!empty($flash_messages)): ?>
+                <?php foreach ($flash_messages as $type => $message): ?>
+                    <?php if ($type !== 'validation_errors' && $type !== 'old_input'): ?>
+                        MusicLocker.showToast(<?= json_encode($message) ?>, <?= json_encode($type === 'error' ? 'danger' : $type) ?>);
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            <?php endif; ?>
+
+            // Initialize offline status indicator
+            updateOfflineIndicator();
+        });
+
+        // Update offline indicator visibility
+        function updateOfflineIndicator() {
+            const indicator = document.getElementById('offline-indicator');
+            if (!indicator) return;
+
+            if (!navigator.onLine) {
+                indicator.style.display = 'inline-block';
+            } else {
+                indicator.style.display = 'none';
+            }
+        }
+
+        // Listen for online/offline events
+        window.addEventListener('online', updateOfflineIndicator);
+        window.addEventListener('offline', updateOfflineIndicator);
     </script>
-    
+
     <?= $additional_js ?? '' ?>
 </body>
 </html>

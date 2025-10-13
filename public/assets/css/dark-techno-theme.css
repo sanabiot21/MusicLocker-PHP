@@ -161,7 +161,7 @@ h1, h2, h3, h4, h5, h6, .navbar-brand, .hero-title, .feature-title {
   background: var(--card-bg);
   border: 1px solid #333;
   border-radius: 15px;
-  padding: 2rem;
+  padding: 1.5rem;
   height: 100%;
   transition: all 0.3s ease;
   position: relative;
@@ -269,15 +269,38 @@ h1, h2, h3, h4, h5, h6, .navbar-brand, .hero-title, .feature-title {
 /* Animation for loading */
 @keyframes glow-pulse {
   0%, 100% {
-    box-shadow: var(--neon-glow) var(--accent-blue);
+    opacity: 0.75;
+    transform: scale(1);
   }
   50% {
-    box-shadow: var(--neon-glow) var(--accent-purple);
+    opacity: 1;
+    transform: scale(1.05);
   }
 }
 
 .pulse-glow {
+  position: relative;
+  display: inline-block;
+  border-radius: 50%;
+}
+
+.pulse-glow::after {
+  content: "";
+  position: absolute;
+  inset: -16px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 212, 255, 0.45) 0%, rgba(138, 43, 226, 0.45) 40%, rgba(0, 0, 0, 0) 70%);
+  filter: blur(10px);
   animation: glow-pulse 2s ease-in-out infinite;
+  z-index: 0;
+}
+
+.pulse-glow .logo-img {
+  display: block;
+  border-radius: 50%;
+  clip-path: circle(50% at 50% 50%);
+  position: relative;
+  z-index: 1;
 }
 
 /* Background Pattern */
@@ -336,6 +359,43 @@ h1, h2, h3, h4, h5, h6, .navbar-brand, .hero-title, .feature-title {
   }
 }
 
+/* Profile Page Styles */
+.stat-number {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+  font-family: 'Kode Mono', monospace;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-gray);
+}
+
+.stat-item {
+  transition: transform 0.2s ease;
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  border: 1px solid #333;
+}
+
 /* Print styles */
 @media print {
   .navbar,
@@ -343,12 +403,12 @@ h1, h2, h3, h4, h5, h6, .navbar-brand, .hero-title, .feature-title {
   .btn {
     display: none !important;
   }
-  
+
   body {
     background: white !important;
     color: black !important;
   }
-  
+
   .hero-section {
     background: white !important;
   }
@@ -416,22 +476,22 @@ html {
     padding-top: 100px; /* More padding on mobile for navbar */
     padding-bottom: 2rem;
   }
-  
+
   .hero-title {
     font-size: 2rem;
     margin-top: 1rem; /* Additional top margin */
   }
-  
+
   .hero-subtitle {
     font-size: 1rem;
     margin-bottom: 1.5rem;
   }
-  
+
   .btn-lg {
     padding: 0.75rem 1.5rem;
     font-size: 1rem;
   }
-  
+
   .display-4 {
     font-size: 1.5rem;
   }
@@ -442,8 +502,165 @@ html {
   .hero-section {
     padding-top: 90px; /* Adjust for medium screens */
   }
-  
+
   .hero-title {
     font-size: 2.5rem;
+  }
+
+  .profile-avatar {
+    width: 60px;
+    height: 60px;
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
+  }
+}
+
+/* Content Section - Consistent spacing for all pages */
+.content-section {
+  margin-top: 80px;
+  min-height: calc(100vh - 200px); /* Prevent footer overlap */
+}
+
+/* Playlist Card Hover Effect */
+.playlist-card {
+  transition: all 0.3s ease;
+}
+
+.playlist-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 20px var(--accent-blue);
+}
+
+/* Search Type Nav Pills (Add Music Modal) */
+.nav-pills .nav-link {
+  background-color: transparent;
+  border: 1px solid var(--accent-blue);
+  color: var(--accent-blue);
+  transition: all 0.3s ease;
+  margin: 0 2px;
+}
+
+.nav-pills .nav-link:hover {
+  background-color: rgba(0, 212, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.nav-pills .nav-link.active {
+  background: var(--gradient-primary);
+  border-color: transparent;
+  color: var(--text-light);
+  box-shadow: 0 0 15px var(--accent-blue);
+}
+
+/* Track & Album Card Hover Effects (for search results modal) */
+.track-card, .album-card {
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 212, 255, 0.1);
+  cursor: pointer;
+}
+
+.track-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+  border-color: var(--accent-blue);
+}
+
+.album-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 15px rgba(138, 43, 226, 0.3);
+  border-color: var(--accent-purple);
+}
+
+/* Modal Enhancements */
+.modal-content {
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+}
+
+.modal-header {
+  border-bottom-color: rgba(0, 212, 255, 0.2);
+}
+
+.modal-footer {
+  border-top-color: rgba(0, 212, 255, 0.2);
+}
+
+/* Search Input in Modal */
+#searchModal .input-group-lg .form-control {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-color: rgba(0, 212, 255, 0.3);
+  color: var(--light);
+  transition: all 0.3s ease;
+}
+
+#searchModal .input-group-lg .form-control:focus {
+  background-color: rgba(0, 0, 0, 0.5);
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+/* Tag Dots for Music Index */
+.tag-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  cursor: help;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+.tag-dot:hover {
+  transform: scale(1.4);
+  box-shadow: 0 0 10px currentColor, 0 0 4px rgba(0, 0, 0, 0.8);
+  border-color: rgba(255, 255, 255, 0.8);
+  filter: brightness(1.2);
+}
+
+/* Music Show Page Enhancements */
+.album-art-container img:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+  transition: all 0.3s ease;
+}
+
+.pulse-on-hover:hover {
+  animation: pulse 0.5s ease-in-out;
+}
+
+.favorite-btn {
+  transition: all 0.3s ease;
+}
+
+.favorite-btn:hover i {
+  transform: scale(1.2);
+  transition: transform 0.2s ease;
+}
+
+.badge.bg-gradient-primary {
+  background: var(--gradient-primary);
+}
+
+.rating-display i {
+  transition: all 0.2s ease;
+}
+
+.copy-link-btn:active {
+  transform: scale(0.95);
+}
+
+/* Note Content */
+.note-content {
+  line-height: 1.8;
+  font-size: 1.05rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .album-art-container img {
+    height: 300px !important;
   }
 }

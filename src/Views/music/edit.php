@@ -16,71 +16,44 @@
                     </div>
                 </div>
 
-                <!-- Flash Messages -->
-                <?php if ($message = flash('success')): ?>
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class="bi bi-check-circle me-2"></i><?= e($message) ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                <?php endif; ?>
-                
-                <?php if ($message = flash('error')): ?>
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class="bi bi-exclamation-triangle me-2"></i><?= e($message) ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                <?php endif; ?>
-
-                <!-- Current Track Preview -->
-                <div class="feature-card mb-4">
-                    <div class="card-header">
-                        <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Current Track Information</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-3 align-items-center">
-                            <div class="col-auto">
-                                <?php if (!empty($entry['album_art_url'])): ?>
-                                    <img src="<?= e($entry['album_art_url']) ?>" class="rounded" 
-                                         alt="<?= e($entry['title']) ?>" style="width: 80px; height: 80px; object-fit: cover;">
-                                <?php else: ?>
-                                    <div class="bg-secondary d-flex align-items-center justify-content-center rounded" 
-                                         style="width: 80px; height: 80px;">
-                                        <i class="bi bi-music-note fs-3 text-muted"></i>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-                            <div class="col">
-                                <h6 class="mb-1"><?= e($entry['title']) ?></h6>
-                                <p class="text-muted small mb-1"><?= e($entry['artist']) ?></p>
-                                <?php if (!empty($entry['album'])): ?>
-                                    <p class="text-muted small mb-0">
-                                        <i class="bi bi-disc me-1"></i><?= e($entry['album']) ?>
-                                    </p>
-                                <?php endif; ?>
-                            </div>
-                            <div class="col-auto">
-                                <?php if ($entry['personal_rating']): ?>
-                                    <div class="text-warning">
-                                        <?php for ($i = 1; $i <= 5; $i++): ?>
-                                            <i class="bi bi-star<?= $i <= $entry['personal_rating'] ? '-fill' : '' ?>"></i>
-                                        <?php endfor; ?>
-                                    </div>
-                                <?php endif; ?>
-                                <?php if ($entry['is_favorite']): ?>
-                                    <i class="bi bi-heart-fill text-danger ms-2"></i>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Edit Form -->
                 <div class="feature-card">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-pencil me-2"></i>Edit Track Details</h5>
+                    <!-- Current Track Preview -->
+                    <div class="row g-3 align-items-center mb-4 pb-3 border-bottom">
+                        <div class="col-auto">
+                            <?php if (!empty($entry['album_art_url'])): ?>
+                                <img src="<?= e($entry['album_art_url']) ?>" class="rounded" 
+                                     alt="<?= e($entry['title']) ?>" style="width: 80px; height: 80px; object-fit: cover;">
+                            <?php else: ?>
+                                <div class="bg-secondary d-flex align-items-center justify-content-center rounded" 
+                                     style="width: 80px; height: 80px;">
+                                    <i class="bi bi-music-note fs-3 text-muted"></i>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="col">
+                            <h5 class="mb-1"><i class="bi bi-pencil me-2"></i>Editing: <?= e($entry['title']) ?></h5>
+                            <p class="text-muted small mb-1">by <?= e($entry['artist']) ?></p>
+                            <?php if (!empty($entry['album'])): ?>
+                                <p class="text-muted small mb-0">
+                                    <i class="bi bi-disc me-1"></i><?= e($entry['album']) ?>
+                                </p>
+                            <?php endif; ?>
+                        </div>
+                        <div class="col-auto">
+                            <?php if ($entry['personal_rating']): ?>
+                                <div class="text-warning">
+                                    <?php for ($i = 1; $i <= 5; $i++): ?>
+                                        <i class="bi bi-star<?= $i <= $entry['personal_rating'] ? '-fill' : '' ?>"></i>
+                                    <?php endfor; ?>
+                                </div>
+                            <?php endif; ?>
+                            <?php if ($entry['is_favorite']): ?>
+                                <i class="bi bi-heart-fill text-danger ms-2"></i>
+                            <?php endif; ?>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <form method="POST">
+                    <form method="POST">
                             <?= csrf_field() ?>
                             
                             <div class="row g-3">
@@ -101,9 +74,9 @@
                                            value="<?= e($entry['album']) ?>">
                                 </div>
                                 <div class="col-md-3">
-                                    <label for="genre" class="form-label">Genre</label>
+                                    <label for="genre" class="form-label">Genre *</label>
                                     <input type="text" class="form-control" id="genre" name="genre" 
-                                           value="<?= e($entry['genre']) ?>">
+                                           value="<?= e($entry['genre']) ?>" required>
                                 </div>
                                 <div class="col-md-3">
                                     <label for="release_year" class="form-label">Year</label>
@@ -112,9 +85,9 @@
                                 </div>
                                 
                                 <div class="col-md-6">
-                                    <label for="personal_rating" class="form-label">Personal Rating</label>
-                                    <select class="form-select" id="personal_rating" name="personal_rating">
-                                        <option value="" <?= !$entry['personal_rating'] ? 'selected' : '' ?>>Not Rated</option>
+                                    <label for="personal_rating" class="form-label">Personal Rating *</label>
+                                    <select class="form-select" id="personal_rating" name="personal_rating" required>
+                                        <option value="" <?= !$entry['personal_rating'] ? 'selected' : '' ?>>Select Rating</option>
                                         <option value="1" <?= $entry['personal_rating'] == 1 ? 'selected' : '' ?>>1 Star</option>
                                         <option value="2" <?= $entry['personal_rating'] == 2 ? 'selected' : '' ?>>2 Stars</option>
                                         <option value="3" <?= $entry['personal_rating'] == 3 ? 'selected' : '' ?>>3 Stars</option>
@@ -132,6 +105,33 @@
                                     </div>
                                 </div>
                                 
+                                <!-- Tags Selection -->
+                                <?php if (!empty($availableTags)): ?>
+                                    <div class="col-12">
+                                        <label class="form-label">
+                                            <i class="bi bi-tags me-1"></i>Tags (Optional)
+                                        </label>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <?php 
+                                            $selectedTagIds = array_column($tags, 'id');
+                                            foreach ($availableTags as $tag): 
+                                                $isChecked = in_array($tag['id'], $selectedTagIds);
+                                            ?>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="tags[]" 
+                                                           value="<?= $tag['id'] ?>" id="tag_<?= $tag['id'] ?>"
+                                                           <?= $isChecked ? 'checked' : '' ?>>
+                                                    <label class="form-check-label" for="tag_<?= $tag['id'] ?>">
+                                                        <span class="badge" style="background-color: <?= e($tag['color']) ?>;">
+                                                            <?= e($tag['name']) ?>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                                
                                 <?php if (!empty($entry['spotify_url'])): ?>
                                     <div class="col-12">
                                         <div class="alert alert-info d-flex align-items-center">
@@ -146,6 +146,36 @@
                                     </div>
                                 <?php endif; ?>
                                 
+                                <!-- Personal Notes Section -->
+                                <div class="col-12">
+                                    <hr class="my-4">
+                                    <h6 class="mb-3"><i class="bi bi-pencil-square me-2"></i>Personal Notes (Optional)</h6>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="note_text" class="form-label">Notes & Thoughts</label>
+                                    <textarea class="form-control" id="note_text" name="note_text" rows="3" 
+                                              placeholder="Your thoughts, memories, or why you love this song..."><?= e($note['note_text'] ?? '') ?></textarea>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <label for="mood" class="form-label">Mood</label>
+                                    <input type="text" class="form-control" id="mood" name="mood" 
+                                           value="<?= e($note['mood'] ?? '') ?>" placeholder="e.g., Happy, Nostalgic">
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <label for="memory_context" class="form-label">Memory Context</label>
+                                    <input type="text" class="form-control" id="memory_context" name="memory_context" 
+                                           value="<?= e($note['memory_context'] ?? '') ?>" placeholder="e.g., Summer 2020">
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <label for="listening_context" class="form-label">Listening Context</label>
+                                    <input type="text" class="form-control" id="listening_context" name="listening_context" 
+                                           value="<?= e($note['listening_context'] ?? '') ?>" placeholder="e.g., Workout, Study">
+                                </div>
+                                
                                 <div class="col-12">
                                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                                         <a href="<?= route_url('music') ?>/<?= $entry['id'] ?>" class="btn btn-outline-secondary me-md-2">
@@ -157,12 +187,9 @@
                                     </div>
                                 </div>
                             </div>
-                        </form>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
-    </div>
-
     </div>
 </section>

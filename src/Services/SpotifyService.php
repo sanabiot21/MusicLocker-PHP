@@ -341,6 +341,47 @@ class SpotifyService
     }
     
     /**
+     * Get album tracks by ID
+     */
+    public function getAlbumTracks(string $albumId, int $limit = 50): array
+    {
+        $endpoint = "albums/{$albumId}/tracks?" . http_build_query([
+            'limit' => $limit
+        ]);
+        
+        return $this->makeRequest($endpoint);
+    }
+    
+    /**
+     * Get genre from artist information
+     * Fetches the first artist's genre since tracks don't have genre info directly
+     */
+    public function getGenreFromTrack(array $track): ?string
+    {
+        try {
+            // Get first artist ID
+            if (empty($track['artists']) || empty($track['artists'][0]['id'])) {
+                return null;
+            }
+            
+            $artistId = $track['artists'][0]['id'];
+            $artistData = $this->getArtist($artistId);
+            
+            // Return first genre if available
+            if (!empty($artistData['genres'])) {
+                // Capitalize first letter of each word for better display
+                return ucwords(str_replace('-', ' ', $artistData['genres'][0]));
+            }
+            
+            return null;
+            
+        } catch (Exception $e) {
+            error_log("Genre fetch error: " . $e->getMessage());
+            return null;
+        }
+    }
+    
+    /**
      * Extract useful metadata from track data
      */
     public function extractTrackMetadata(array $track): array

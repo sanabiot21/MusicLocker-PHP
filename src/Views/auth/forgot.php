@@ -5,14 +5,24 @@
             <div class="col-lg-5 col-md-7 col-sm-9">
                 <div class="feature-card">
                     <div class="text-center mb-4">
-                        <i class="bi bi-key display-4 mb-3" 
+                        <i class="bi bi-key display-4 mb-3"
                            style="background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
-                        <h1 class="h2 mb-2">Forgot Password?</h1>
-                        <p class="text-muted">Enter your email address and we'll send you a link to reset your password</p>
+                        <h1 class="h2 mb-2"><?= isset($approvedRequest) && $approvedRequest ? 'Reset Your Password' : 'Forgot Password?' ?></h1>
+                        <p class="text-muted">
+                            <?= isset($approvedRequest) && $approvedRequest ? 'Your reset has been approved! Set your new password below.' : 'Enter your email to request a password reset' ?>
+                        </p>
                     </div>
 
-                    <form id="forgotForm" method="POST" action="<?= route_url('forgot') ?>" novalidate>
-                        <?= csrf_field() ?>
+                    <?php if (isset($approvedRequest) && $approvedRequest): ?>
+                        <!-- Approved: Show password reset form -->
+                        <form id="resetForm" method="POST" action="<?= route_url('forgot') ?>" novalidate>
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="user_id" value="<?= $approvedRequest['user_id'] ?>">
+                    <?php else: ?>
+                        <!-- Not approved: Show email form -->
+                        <form id="forgotForm" method="POST" action="<?= route_url('forgot') ?>" novalidate>
+                            <?= csrf_field() ?>
+                    <?php endif; ?>
                         
                         <!-- Display validation errors -->
                         <?php if (isset($flash_messages['validation_errors'])): ?>
@@ -25,34 +35,57 @@
                             </div>
                         <?php endif; ?>
 
-                        <!-- Email -->
-                        <div class="mb-4">
-                            <label for="email" class="form-label form-label-dark">
-                                <i class="bi bi-envelope me-1"></i>Email Address
-                            </label>
-                            <input type="email" 
-                                   class="form-control form-control-dark <?= isset($flash_messages['validation_errors']['email']) ? 'is-invalid' : '' ?>" 
-                                   id="email" name="email" 
-                                   value="<?= htmlspecialchars($flash_messages['old_input']['email'] ?? '') ?>"
-                                   placeholder="Enter your email address" required>
-                            <?php if (isset($flash_messages['validation_errors']['email'])): ?>
-                                <div class="invalid-feedback">
-                                    <?= htmlspecialchars($flash_messages['validation_errors']['email']) ?>
+                        <?php if (isset($approvedRequest) && $approvedRequest): ?>
+                            <!-- New Password -->
+                            <div class="mb-3">
+                                <label for="new_password" class="form-label form-label-dark">
+                                    <i class="bi bi-lock me-1"></i>New Password
+                                </label>
+                                <input type="password"
+                                       class="form-control form-control-dark"
+                                       id="new_password" name="new_password"
+                                       placeholder="Enter new password" required minlength="8">
+                                <div class="form-text text-muted small mt-2">
+                                    <i class="bi bi-info-circle me-1"></i>Minimum 8 characters
                                 </div>
-                            <?php else: ?>
-                                <div class="invalid-feedback">
-                                    Please provide a valid email address.
-                                </div>
-                            <?php endif; ?>
-                            <div class="form-text text-muted small mt-2">
-                                <i class="bi bi-info-circle me-1"></i>We'll send password reset instructions to this email
                             </div>
-                        </div>
 
-                        <!-- Submit Button -->
-                        <button type="submit" class="btn btn-glow w-100 py-3 mb-3">
-                            <i class="bi bi-envelope me-2"></i>Send Reset Link
-                        </button>
+                            <!-- Confirm Password -->
+                            <div class="mb-4">
+                                <label for="confirm_password" class="form-label form-label-dark">
+                                    <i class="bi bi-lock-fill me-1"></i>Confirm Password
+                                </label>
+                                <input type="password"
+                                       class="form-control form-control-dark"
+                                       id="confirm_password" name="confirm_password"
+                                       placeholder="Confirm new password" required minlength="8">
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button type="submit" class="btn btn-glow w-100 py-3 mb-3">
+                                <i class="bi bi-key me-2"></i>Reset Password
+                            </button>
+                        <?php else: ?>
+                            <!-- Email -->
+                            <div class="mb-4">
+                                <label for="email" class="form-label form-label-dark">
+                                    <i class="bi bi-envelope me-1"></i>Email Address
+                                </label>
+                                <input type="email"
+                                       class="form-control form-control-dark <?= isset($flash_messages['validation_errors']['email']) ? 'is-invalid' : '' ?>"
+                                       id="email" name="email"
+                                       value="<?= htmlspecialchars($_GET['email'] ?? $flash_messages['old_input']['email'] ?? '') ?>"
+                                       placeholder="Enter your email address" required>
+                                <div class="form-text text-muted small mt-2">
+                                    <i class="bi bi-info-circle me-1"></i>Enter email to check approval status or submit request
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button type="submit" class="btn btn-glow w-100 py-3 mb-3">
+                                <i class="bi bi-envelope me-2"></i>Check Status / Request Reset
+                            </button>
+                        <?php endif; ?>
 
                         <!-- Back to Login -->
                         <div class="text-center">
