@@ -6,6 +6,7 @@ FROM php:8.2-fpm-alpine AS builder
 RUN apk add --no-cache \
     git \
     curl \
+    openssl \
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
@@ -46,10 +47,11 @@ WORKDIR /var/www
 # Copy all application files first
 COPY . .
 
-# Create comprehensive .env file for PostgreSQL/Supabase
-RUN echo "APP_NAME=Laravel" > .env && \
+# Create comprehensive .env file for PostgreSQL/Supabase with generated key
+RUN APP_KEY="base64:$(openssl rand -base64 32)" && \
+    echo "APP_NAME=Laravel" > .env && \
     echo "APP_ENV=production" >> .env && \
-    echo "APP_KEY=" >> .env && \
+    echo "APP_KEY=$APP_KEY" >> .env && \
     echo "APP_DEBUG=false" >> .env && \
     echo "APP_URL=http://localhost" >> .env && \
     echo "LOG_CHANNEL=stack" >> .env && \
@@ -78,8 +80,7 @@ RUN npm ci
 # Build frontend assets
 RUN npm run build
 
-# Generate application key
-RUN php artisan key:generate --ansi --force
+# Skip artisan key:generate since we already have the key in .env
 
 # Optimize Laravel for production (with error handling)
 RUN php artisan config:cache --ansi || echo "Config cache failed - continuing..." && \
