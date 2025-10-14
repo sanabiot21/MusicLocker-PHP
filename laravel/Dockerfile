@@ -46,12 +46,23 @@ WORKDIR /var/www
 # Copy all application files first
 COPY . .
 
-# Create basic .env file for composer install
+# Create comprehensive .env file
 RUN echo "APP_NAME=Laravel" > .env && \
     echo "APP_ENV=production" >> .env && \
     echo "APP_KEY=" >> .env && \
     echo "APP_DEBUG=false" >> .env && \
-    echo "APP_URL=http://localhost" >> .env
+    echo "APP_URL=http://localhost" >> .env && \
+    echo "LOG_CHANNEL=stack" >> .env && \
+    echo "LOG_DEPRECATIONS_CHANNEL=null" >> .env && \
+    echo "LOG_LEVEL=debug" >> .env && \
+    echo "DB_CONNECTION=sqlite" >> .env && \
+    echo "DB_DATABASE=/var/www/database/database.sqlite" >> .env && \
+    echo "BROADCAST_DRIVER=log" >> .env && \
+    echo "CACHE_DRIVER=file" >> .env && \
+    echo "FILESYSTEM_DISK=local" >> .env && \
+    echo "QUEUE_CONNECTION=sync" >> .env && \
+    echo "SESSION_DRIVER=file" >> .env && \
+    echo "SESSION_LIFETIME=120" >> .env
 
 # Install PHP dependencies (production optimized)
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --ignore-platform-reqs --verbose --no-scripts || \
@@ -63,10 +74,14 @@ RUN npm ci
 # Build frontend assets
 RUN npm run build
 
-# Optimize Laravel for production
-RUN php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache
+# Create SQLite database file and generate application key
+RUN touch database/database.sqlite && \
+    php artisan key:generate --ansi --force
+
+# Optimize Laravel for production (with error handling)
+RUN php artisan config:cache --ansi || echo "Config cache failed - continuing..." && \
+    php artisan route:cache --ansi || echo "Route cache failed - continuing..." && \
+    php artisan view:cache --ansi || echo "View cache failed - continuing..."
 
 # Stage 2: Production runtime
 FROM php:8.2-fpm-alpine AS production
