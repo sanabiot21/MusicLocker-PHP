@@ -39,6 +39,8 @@ cache/
 # Composer
 vendor/
 composer.lock
+# But allow Laravel composer.lock for deployment
+!/laravel/composer.lock
 
 # IDE & Editor Files
 .vscode/
