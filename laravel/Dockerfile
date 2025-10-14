@@ -46,7 +46,7 @@ WORKDIR /var/www
 # Copy all application files first
 COPY . .
 
-# Create comprehensive .env file
+# Create comprehensive .env file for PostgreSQL/Supabase
 RUN echo "APP_NAME=Laravel" > .env && \
     echo "APP_ENV=production" >> .env && \
     echo "APP_KEY=" >> .env && \
@@ -55,8 +55,12 @@ RUN echo "APP_NAME=Laravel" > .env && \
     echo "LOG_CHANNEL=stack" >> .env && \
     echo "LOG_DEPRECATIONS_CHANNEL=null" >> .env && \
     echo "LOG_LEVEL=debug" >> .env && \
-    echo "DB_CONNECTION=sqlite" >> .env && \
-    echo "DB_DATABASE=/var/www/database/database.sqlite" >> .env && \
+    echo "DB_CONNECTION=pgsql" >> .env && \
+    echo "DB_HOST=localhost" >> .env && \
+    echo "DB_PORT=5432" >> .env && \
+    echo "DB_DATABASE=laravel" >> .env && \
+    echo "DB_USERNAME=postgres" >> .env && \
+    echo "DB_PASSWORD=" >> .env && \
     echo "BROADCAST_DRIVER=log" >> .env && \
     echo "CACHE_DRIVER=file" >> .env && \
     echo "FILESYSTEM_DISK=local" >> .env && \
@@ -74,9 +78,8 @@ RUN npm ci
 # Build frontend assets
 RUN npm run build
 
-# Create SQLite database file and generate application key
-RUN touch database/database.sqlite && \
-    php artisan key:generate --ansi --force
+# Generate application key
+RUN php artisan key:generate --ansi --force
 
 # Optimize Laravel for production (with error handling)
 RUN php artisan config:cache --ansi || echo "Config cache failed - continuing..." && \
