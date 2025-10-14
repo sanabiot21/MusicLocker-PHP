@@ -104,9 +104,13 @@ RUN docker-php-ext-configure gd \
     --with-webp=/usr/include/ \
     && docker-php-ext-install -j$(nproc) gd
 
-# Create www-data user and group
-RUN addgroup -g 1000 -S www-data && \
-    adduser -u 1000 -D -S -G www-data www-data
+# Ensure www-data user and group exist
+RUN if ! getent group www-data >/dev/null 2>&1; then \
+        addgroup -g 1000 -S www-data; \
+    fi && \
+    if ! getent passwd www-data >/dev/null 2>&1; then \
+        adduser -u 1000 -D -S -G www-data www-data; \
+    fi
 
 # Set working directory
 WORKDIR /var/www
