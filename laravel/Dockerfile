@@ -46,8 +46,15 @@ WORKDIR /var/www
 # Copy composer files
 COPY composer.json composer.lock ./
 
+# Create basic .env file for composer install
+RUN echo "APP_NAME=Laravel" > .env && \
+    echo "APP_ENV=production" >> .env && \
+    echo "APP_KEY=" >> .env && \
+    echo "APP_DEBUG=false" >> .env && \
+    echo "APP_URL=http://localhost" >> .env
+
 # Install PHP dependencies (production optimized)
-RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --ignore-platform-reqs
 
 # Copy package.json and install Node dependencies
 COPY package.json package-lock.json ./
@@ -55,6 +62,9 @@ RUN npm ci
 
 # Copy application code
 COPY . .
+
+# Generate application key if not set
+RUN php artisan key:generate --ansi || echo "APP_KEY already set"
 
 # Build frontend assets
 RUN npm run build
