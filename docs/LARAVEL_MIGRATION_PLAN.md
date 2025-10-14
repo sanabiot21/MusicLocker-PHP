@@ -14,7 +14,7 @@ This document outlines the complete migration strategy from the current custom P
 ### Source Project (Custom PHP - Desktop)
 - **Location**: `C:\Users\shawn\Desktop\MusicLocker-PHP`
 - **Framework**: Custom MVC with PSR-4 autoloading
-- **Database**: Complete MySQL schema with 9 tables
+- **Database**: Complete MySQL schema with 9 tables (refer to )
 - **Features**: User authentication, Spotify integration, music catalog management
 - **Frontend**: Bootstrap 5.3.2 with dark-techno theme
 - **Status**: Fully functional Phase 3 implementation
@@ -199,11 +199,11 @@ config/spotify.php → laravel/config/services.php (spotify section)
 ```php
 // Laravel .env format for Supabase PostgreSQL
 DB_CONNECTION=pgsql
-DB_HOST=db.your-project-id.supabase.co
+DB_HOST=https://xkitrpslmahzsniupqpz.supabase.co
 DB_PORT=5432
 DB_DATABASE=postgres
 DB_USERNAME=postgres
-DB_PASSWORD=your-supabase-password
+DB_PASSWORD=ry.D@cayana890.
 DB_SSLMODE=require
 ```
 
