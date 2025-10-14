@@ -43,8 +43,8 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www
 
-# Copy composer files
-COPY composer.json composer.lock ./
+# Copy all application files first
+COPY . .
 
 # Create basic .env file for composer install
 RUN echo "APP_NAME=Laravel" > .env && \
@@ -54,17 +54,11 @@ RUN echo "APP_NAME=Laravel" > .env && \
     echo "APP_URL=http://localhost" >> .env
 
 # Install PHP dependencies (production optimized)
-RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --ignore-platform-reqs
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --ignore-platform-reqs --verbose --no-scripts || \
+    (echo "Composer install failed, trying with scripts..." && composer install --no-dev --no-interaction --prefer-dist --ignore-platform-reqs --verbose)
 
-# Copy package.json and install Node dependencies
-COPY package.json package-lock.json ./
+# Install Node dependencies
 RUN npm ci
-
-# Copy application code
-COPY . .
-
-# Generate application key if not set
-RUN php artisan key:generate --ansi || echo "APP_KEY already set"
 
 # Build frontend assets
 RUN npm run build
