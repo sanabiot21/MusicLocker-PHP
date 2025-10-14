@@ -2,36 +2,40 @@
 # Stage 1: Build dependencies and assets
 FROM php:8.2-fpm-alpine AS builder
 
-# Install system dependencies
+# Install system dependencies and build tools
 RUN apk add --no-cache \
     git \
     curl \
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
+    libwebp-dev \
     libxml2-dev \
     zip \
     unzip \
     nodejs \
     npm \
     postgresql-dev \
+    postgresql-libs \
     oniguruma-dev \
     libzip-dev \
     autoconf \
     g++ \
-    make
+    make \
+    linux-headers
 
-# Configure and install PHP extensions
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) \
-    pdo_pgsql \
-    pgsql \
-    mbstring \
-    exif \
-    pcntl \
-    bcmath \
-    gd \
-    zip
+# Install PostgreSQL extensions first
+RUN docker-php-ext-install -j$(nproc) pdo_pgsql pgsql
+
+# Install other simple extensions
+RUN docker-php-ext-install -j$(nproc) mbstring exif pcntl bcmath zip
+
+# Configure and install GD extension separately (it's complex)
+RUN docker-php-ext-configure gd \
+    --with-freetype=/usr/include/ \
+    --with-jpeg=/usr/include/ \
+    --with-webp=/usr/include/ \
+    && docker-php-ext-install -j$(nproc) gd
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -63,32 +67,42 @@ RUN php artisan config:cache && \
 # Stage 2: Production runtime
 FROM php:8.2-fpm-alpine AS production
 
-# Install runtime dependencies
+# Install runtime dependencies and build tools
 RUN apk add --no-cache \
     nginx \
     supervisor \
     postgresql-dev \
+    postgresql-libs \
     libpng \
+    libpng-dev \
     libjpeg-turbo \
+    libjpeg-turbo-dev \
     freetype \
+    freetype-dev \
+    libwebp \
+    libwebp-dev \
     libxml2 \
     oniguruma \
+    oniguruma-dev \
     libzip \
+    libzip-dev \
     autoconf \
     g++ \
-    make
+    make \
+    linux-headers
 
-# Configure and install PHP extensions (runtime only)
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) \
-    pdo_pgsql \
-    pgsql \
-    mbstring \
-    exif \
-    pcntl \
-    bcmath \
-    gd \
-    zip
+# Install PostgreSQL extensions first
+RUN docker-php-ext-install -j$(nproc) pdo_pgsql pgsql
+
+# Install other simple extensions
+RUN docker-php-ext-install -j$(nproc) mbstring exif pcntl bcmath zip
+
+# Configure and install GD extension separately (it's complex)
+RUN docker-php-ext-configure gd \
+    --with-freetype=/usr/include/ \
+    --with-jpeg=/usr/include/ \
+    --with-webp=/usr/include/ \
+    && docker-php-ext-install -j$(nproc) gd
 
 # Create www-data user and group
 RUN addgroup -g 1000 -S www-data && \
