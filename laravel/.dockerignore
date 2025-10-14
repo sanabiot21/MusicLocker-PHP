@@ -1,0 +1,76 @@
+# Laravel .dockerignore for optimized builds
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+CHANGELOG.md
+*.md
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Laravel specific
+/storage/app/*
+!/storage/app/.gitignore
+/storage/framework/cache/*
+!/storage/framework/cache/.gitignore
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitignore
+/storage/framework/testing/*
+!/storage/framework/testing/.gitignore
+/storage/framework/views/*
+!/storage/framework/views/.gitignore
+/storage/logs/*
+!/storage/logs/.gitignore
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Dependencies (will be installed during build)
+/vendor/
+/node_modules/
+
+# Build artifacts
+/public/hot
+/public/storage
+/public/build
+
+# Testing
+.phpunit.result.cache
+/coverage/
+phpunit.xml
+
+# Development tools
+.php-cs-fixer.cache
+.phpstan.cache
+.psalm.cache
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.cache
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore

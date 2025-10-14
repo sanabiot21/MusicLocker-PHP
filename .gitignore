@@ -113,6 +113,25 @@ uploads/
 public/uploads/
 user-content/
 
+# Laravel Subdirectory Specific
+/laravel/vendor/
+/laravel/.env
+/laravel/.env.*
+!/laravel/.env.example
+/laravel/storage/
+!/laravel/storage/app/
+!/laravel/storage/framework/
+!/laravel/storage/logs/
+/laravel/bootstrap/cache/
+/laravel/node_modules/
+/laravel/.phpunit.result.cache
+/laravel/.php-cs-fixer.cache
+/laravel/.phpstan.cache
+/laravel/.psalm.cache
+/laravel/public/hot
+/laravel/public/storage
+/laravel/public/build
+
 # Email Templates (sensitive)
 email-templates/private/
 

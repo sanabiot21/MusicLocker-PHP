@@ -1,0 +1,100 @@
+# Render Blueprint for Music Locker Laravel
+services:
+  - type: web
+    name: music-locker-laravel
+    runtime: docker
+    rootDir: ./laravel
+    dockerfilePath: ./Dockerfile
+    dockerContext: ./
+    
+    # Auto-deploy on Git push
+    autoDeploy: true
+    
+    # Environment variables (set these in Render Dashboard)
+    envVars:
+      - key: APP_NAME
+        value: "Music Locker"
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_URL
+        sync: false  # Set in dashboard to your Render app URL
+      - key: APP_KEY
+        sync: false  # Generate with: php artisan key:generate --show
+      
+      # Database - Supabase PostgreSQL
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        value: aws-1-ap-southeast-1.pooler.supabase.com
+      - key: DB_PORT
+        value: 6543
+      - key: DB_DATABASE
+        value: postgres
+      - key: DB_USERNAME
+        value: postgres.xkitrpslmahzsniupqpz
+      - key: DB_PASSWORD
+        sync: false  # Set in dashboard: ry.D@cayana890.
+      - key: DB_SSLMODE
+        value: require
+      
+      # Session & Cache (database-driven for Render)
+      - key: SESSION_DRIVER
+        value: database
+      - key: SESSION_LIFETIME
+        value: 120
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
+      
+      # Spotify API
+      - key: SPOTIFY_CLIENT_ID
+        value: 356702eb81d0499381fcf5222ab757fb
+      - key: SPOTIFY_CLIENT_SECRET
+        value: 3a826c32f5dc41e9939b4ec3229a5647
+      
+      # Mail Configuration (configure for production)
+      - key: MAIL_MAILER
+        value: smtp
+      - key: MAIL_HOST
+        sync: false  # Set to your mail provider
+      - key: MAIL_PORT
+        value: 587
+      - key: MAIL_USERNAME
+        sync: false  # Set in dashboard
+      - key: MAIL_PASSWORD
+        sync: false  # Set in dashboard
+      - key: MAIL_ENCRYPTION
+        value: tls
+      - key: MAIL_FROM_ADDRESS
+        value: noreply@musiclocker.app
+      - key: MAIL_FROM_NAME
+        value: "Music Locker"
+      
+      # Music Locker Specific
+      - key: MUSIC_LOCKER_MAX_ENTRIES_PER_USER
+        value: 10000
+      - key: MUSIC_LOCKER_SESSION_TIMEOUT
+        value: 3600
+      
+      # Logging
+      - key: LOG_CHANNEL
+        value: stack
+      - key: LOG_LEVEL
+        value: error
+    
+    # Health check
+    healthCheckPath: /health
+    
+    # Scaling
+    numInstances: 1
+    
+    # Plan (adjust as needed)
+    plan: starter  # or starter-plus, standard, pro
+    
+    # Custom domains (add after deployment)
+    # domains:
+    #   - musiclocker.app
+    #   - www.musiclocker.app
