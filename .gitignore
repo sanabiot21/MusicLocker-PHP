@@ -72,6 +72,8 @@ yarn-debug.log*
 yarn-error.log*
 package-lock.json
 yarn.lock
+# But allow Laravel package-lock.json for deployment
+!/laravel/package-lock.json
 
 # OS Generated Files
 .DS_Store
