@@ -7,6 +7,8 @@ RUN apk add --no-cache \
     git \
     curl \
     libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
     libxml2-dev \
     zip \
     unzip \
@@ -14,10 +16,14 @@ RUN apk add --no-cache \
     npm \
     postgresql-dev \
     oniguruma-dev \
-    libzip-dev
+    libzip-dev \
+    autoconf \
+    g++ \
+    make
 
-# Install PHP extensions
-RUN docker-php-ext-install \
+# Configure and install PHP extensions
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
     pdo_pgsql \
     pgsql \
     mbstring \
@@ -63,12 +69,18 @@ RUN apk add --no-cache \
     supervisor \
     postgresql-dev \
     libpng \
+    libjpeg-turbo \
+    freetype \
     libxml2 \
     oniguruma \
-    libzip
+    libzip \
+    autoconf \
+    g++ \
+    make
 
-# Install PHP extensions (runtime only)
-RUN docker-php-ext-install \
+# Configure and install PHP extensions (runtime only)
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
     pdo_pgsql \
     pgsql \
     mbstring \
