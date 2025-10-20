@@ -18,6 +18,12 @@ php artisan tinker --execute="DB::connection()->getPdo(); echo 'Database connect
 echo "Running database migrations..."
 php artisan migrate --force
 
+# Build assets if not already built
+if [ ! -d "/var/www/public/build" ]; then
+    echo "Building frontend assets..."
+    npm run build
+fi
+
 # Clear and cache configuration for production
 echo "Optimizing Laravel for production..."
 
