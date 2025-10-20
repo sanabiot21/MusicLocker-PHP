@@ -35,6 +35,18 @@
                     <form method="POST" action="{{ route('music.store') }}" id="addMusicForm">
                         @csrf
 
+                        @if ($errors->any())
+                            <div class="alert alert-danger alert-dismissible fade show mb-3">
+                                <strong><i class="bi bi-exclamation-triangle me-2"></i>Validation Error:</strong>
+                                <ul class="mb-0 mt-2">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        @endif
+
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="title" class="form-label">Track Title *</label>
@@ -445,13 +457,136 @@ setTimeout(() => {
   }
 }, 1000);
 
+// Handle album selection - fetch album tracks
+document.addEventListener('click', function(e) {
+  if (e.target.closest('.select-album')) {
+    const button = e.target.closest('.select-album');
+    const albumId = button.getAttribute('data-album-id');
+
+    console.log('💿 Album button clicked! Album ID:', albumId);
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Fetch album tracks
+    fetchAlbumTracks(albumId);
+  }
+});
+
+// Fetch album tracks from Spotify API
+async function fetchAlbumTracks(albumId) {
+  const searchResults = document.getElementById('searchResults');
+  searchResults.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary mb-3" role="status" style="width: 2rem; height: 2rem;"><span class="visually-hidden">Loading...</span></div><p class="text-muted">Loading album tracks...</p></div>';
+
+  try {
+    // Fetch both album details and tracks in parallel
+    const [tracksResponse, albumResponse] = await Promise.all([
+      fetch(`/api/v1/spotify/album/${albumId}/tracks?limit=50`),
+      fetch(`/api/v1/spotify/album/${albumId}`)
+    ]);
+
+    const tracksData = await tracksResponse.json();
+    const albumData = await albumResponse.json();
+
+    console.log('💿 Album tracks response:', tracksData);
+    console.log('💿 Album details response:', albumData);
+
+    if (tracksData.success && tracksData.data && tracksData.data.items) {
+      // Pass album data for album art
+      const albumImages = albumData.success && albumData.data && albumData.data.images ? albumData.data.images : null;
+      displayAlbumTracks(tracksData.data.items, albumId, albumImages);
+    } else {
+      searchResults.innerHTML = '<div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i>Error loading album tracks</div>';
+    }
+  } catch (error) {
+    console.error('❌ Error fetching album tracks:', error);
+    searchResults.innerHTML = '<div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i>Error loading album tracks. Please try again.</div>';
+  }
+}
+
+// Display album tracks as selectable items
+function displayAlbumTracks(tracks, albumId, albumImages) {
+  const searchResults = document.getElementById('searchResults');
+  let html = '<div class="mb-3">';
+  html += '<button type="button" class="btn btn-outline-secondary btn-sm mb-3" id="backToSearch">';
+  html += '<i class="bi bi-arrow-left me-1"></i>Back to Search Results</button>';
+  html += '<h6 class="mb-3"><i class="bi bi-music-note-list me-2"></i>Select a Track from Album</h6>';
+  html += '<div class="row g-2">';
+
+  // Use album images if available, otherwise fall back to track images
+  const albumArtUrl = albumImages && albumImages[0] ? albumImages[0].url : '';
+
+  // Render each track with select button
+  tracks.forEach(track => {
+    // Priority: album images > track images
+    const trackImage = albumArtUrl || (track.album && track.album.images && track.album.images[0] ? track.album.images[0].url : '');
+    const artistNames = track.artists.map(a => a.name).join(', ');
+    const albumName = track.album ? track.album.name : '';
+
+    const trackData = {
+      title: track.name,
+      artist: artistNames,
+      album: albumName,
+      spotify_id: track.id,
+      spotify_url: track.external_urls.spotify || '',
+      album_art_url: trackImage || '',
+      duration: Math.round(track.duration_ms / 1000),
+      release_year: track.album && track.album.release_date ? track.album.release_date.substring(0, 4) : '',
+      genre: 'Unknown'
+    };
+
+    html += '<div class="col-12">';
+    html += '<div class="card bg-secondary track-card">';
+    html += '<div class="row g-0">';
+    if (trackImage) {
+      html += '<div class="col-auto" style="width: 80px;">';
+      html += '<img src="' + trackImage + '" class="img-fluid rounded-start" style="width: 80px; height: 80px; object-fit: cover;" alt="' + track.name + '">';
+      html += '</div>';
+    }
+    html += '<div class="col">';
+    html += '<div class="card-body p-2 d-flex align-items-center">';
+    html += '<div class="flex-grow-1 me-2" style="min-width: 0;">';
+    html += '<h6 class="card-title mb-0 text-truncate">' + track.name + '</h6>';
+    html += '<p class="card-text text-muted small mb-0 text-truncate">' + artistNames;
+    if (albumName) html += ' • ' + albumName;
+    html += '</p>';
+    html += '</div>';
+    html += '<div>';
+    html += '<button type="button" class="btn btn-glow btn-sm select-track" data-track=\'' + JSON.stringify(trackData) + '\'>';
+    html += '<i class="bi bi-check-circle"></i>';
+    html += '</button>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+  });
+
+  html += '</div></div>';
+  searchResults.innerHTML = html;
+
+  // Add back button handler
+  const backButton = document.getElementById('backToSearch');
+  if (backButton) {
+    backButton.addEventListener('click', function() {
+      // Re-run the previous search
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput && searchInput.value.trim()) {
+        const searchForm = document.getElementById('spotifySearchForm');
+        if (searchForm) {
+          searchForm.dispatchEvent(new Event('submit'));
+        }
+      }
+    });
+  }
+}
+
 // Handle dynamically created track selection buttons - MAIN HANDLER
 document.addEventListener('click', function(e) {
   console.log('🔍 Click detected on:', e.target);
-  
+
   const button = e.target.closest('.select-track');
   if (!button) return;
-  
+
   e.preventDefault();
   e.stopPropagation();
   

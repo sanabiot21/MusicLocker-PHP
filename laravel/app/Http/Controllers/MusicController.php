@@ -179,7 +179,7 @@ class MusicController extends Controller
             'title' => $validated['title'],
             'artist' => $validated['artist'],
             'album' => $validated['album'] ?? null,
-            'genre' => $validated['genre'] ?? null,
+            'genre' => $validated['genre'] ?? 'Unknown',
             'release_year' => $validated['release_year'] ?? null,
             'duration' => $validated['duration'] ?? null,
             'personal_rating' => $validated['personal_rating'] ?? 3,
@@ -187,7 +187,7 @@ class MusicController extends Controller
             'spotify_url' => $validated['spotify_url'] ?? null,
             'preview_url' => $validated['preview_url'] ?? null,
             'album_art_url' => $validated['album_art_url'] ?? null,
-            'is_favorite' => $validated['is_favorite'] ?? false,
+            'is_favorite' => filter_var($validated['is_favorite'] ?? false, FILTER_VALIDATE_BOOLEAN),
         ]);
 
         // Log activity
@@ -284,13 +284,13 @@ class MusicController extends Controller
             'title' => $validated['title'],
             'artist' => $validated['artist'],
             'album' => $validated['album'] ?? null,
-            'genre' => $validated['genre'] ?? null,
+            'genre' => $validated['genre'] ?? 'Unknown',
             'release_year' => $validated['release_year'] ?? null,
             'duration' => $validated['duration'] ?? null,
             'personal_rating' => $validated['personal_rating'] ?? 3,
             'album_art_url' => $validated['album_art_url'] ?? $entry->album_art_url,
             'spotify_url' => $validated['spotify_url'] ?? $entry->spotify_url,
-            'is_favorite' => $validated['is_favorite'] ?? false,
+            'is_favorite' => filter_var($validated['is_favorite'] ?? false, FILTER_VALIDATE_BOOLEAN),
         ]);
 
         // Log activity
