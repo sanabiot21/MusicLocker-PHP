@@ -4,9 +4,14 @@
 
 A PHP-based web application that allows users to create and manage their personal music catalog without relying on external streaming platforms. Music Locker provides a private, organized space where music enthusiasts can log their favorite tracks, albums, and associated memories.
 
+**This project showcases two complete implementations:**
+- **V1**: Custom PHP MVC architecture (Production-ready)
+- **V2**: Laravel framework migration (Modern, scalable)
+
 ## Table of Contents
 
 - [Overview](#overview)
+- [Architecture](#architecture)
 - [Features](#features)
 - [Technology Stack](#technology-stack)
 - [Requirements](#requirements)
@@ -16,6 +21,7 @@ A PHP-based web application that allows users to create and manage their persona
 - [Project Structure](#project-structure)
 - [API Integration](#api-integration)
 - [Security](#security)
+- [Deployment](#deployment)
 - [Contributing](#contributing)
 - [Team](#team)
 - [License](#license)
@@ -38,6 +44,122 @@ Music Locker solves the problem of scattered music discoveries and forgotten fav
 - A file hosting platform
 - A social music sharing network
 - A music recommendation engine
+
+## Architecture
+
+This project demonstrates two complete, production-ready implementations of the Music Locker application:
+
+### V1: Custom PHP MVC Implementation
+
+**Location:** Root directory ([/src](src/), [/public](public/), [/config](config/))
+
+**Philosophy:** Built from scratch to demonstrate deep understanding of web application fundamentals without framework dependencies.
+
+**Key Characteristics:**
+- **Pure MVC Pattern:** Custom-built Model-View-Controller architecture
+- **Manual Routing:** Switch/case based routing in [/public/index.php](public/index.php)
+- **PDO Database Layer:** Direct database access with prepared statements
+- **Repository Pattern:** Interface-based data access ([/src/Repositories](src/Repositories/))
+- **Security-First:** Custom CSRF protection, session management, and input validation
+- **Database:** MySQL 8.0+ with ACID compliance
+- **Deployment:** Docker with Nginx + PHP-FPM on Render.com
+
+**Architecture Layers:**
+```
+/src
+├── /Controllers        # 6 controllers (Auth, Music, Playlist, Admin, Dashboard, Spotify)
+├── /Models             # 6 models (User, MusicEntry, MusicNote, Tag, Playlist, SystemSetting)
+├── /Services           # Business logic (Database PDO wrapper, SpotifyService)
+├── /Repositories       # Data access layer with interfaces (User, Tag repositories)
+├── /Security           # Auth & protection (CsrfManager, SessionManager, InputValidator)
+├── /Utils              # Helpers (ConfigManager, UrlHelper, HelperFunctions)
+└── /Views              # HTML templates (auth, music, admin, playlists, layouts)
+```
+
+**Request Flow:**
+```
+Browser → Nginx → PHP-FPM → /public/index.php (router)
+  → Controller → Model/Service → Database
+  → View → Response
+```
+
+### V2: Laravel Framework Migration
+
+**Location:** [/laravel](laravel/) directory
+
+**Philosophy:** Modern framework approach leveraging Laravel's ecosystem for rapid development, scalability, and maintainability.
+
+**Key Characteristics:**
+- **Laravel 12+:** Full Laravel framework with latest features
+- **Eloquent ORM:** Model-based database abstraction
+- **Artisan CLI:** Code generation and task automation
+- **RESTful API:** Separated web and API routes with Laravel Sanctum
+- **Blade Templates:** Template engine with component system
+- **Migration System:** Version-controlled database schema
+- **Database:** PostgreSQL 13+ (Supabase integration)
+- **Deployment:** Docker-ready with Laravel best practices
+
+**Architecture Layers:**
+```
+/laravel
+├── /app
+│   ├── /Http
+│   │   ├── /Controllers     # Web & API controllers
+│   │   ├── /Middleware      # Authentication & authorization
+│   │   └── /Requests        # Form validation requests
+│   ├── /Models              # Eloquent models with relationships
+│   ├── /Services            # Business logic services
+│   └── /Helpers             # Utility functions
+├── /routes
+│   ├── web.php              # Web routes with middleware
+│   ├── api.php              # RESTful API routes
+│   └── console.php          # Artisan commands
+├── /database
+│   ├── /migrations          # Schema version control
+│   └── /seeders             # Database seeding
+├── /resources
+│   ├── /views               # Blade templates
+│   └── /js                  # Frontend assets (Vite)
+├── /config                  # Configuration files
+├── /storage                 # Logs, cache, sessions
+└── /public                  # Web root
+```
+
+**Request Flow:**
+```
+Browser → Nginx → PHP-FPM → /laravel/public/index.php (Laravel bootstrap)
+  → Routes (middleware) → Controller → Eloquent Model → Database
+  → Blade View/JSON Response → Browser
+```
+
+### V1 vs V2 Comparison
+
+| Aspect | V1 (Custom PHP) | V2 (Laravel) |
+|--------|-----------------|--------------|
+| **Routing** | Manual switch/case | Laravel routes with middleware |
+| **Database** | PDO with prepared statements | Eloquent ORM |
+| **Database Type** | MySQL 8.0+ | PostgreSQL 13+ (Supabase) |
+| **Templates** | Raw PHP views | Blade template engine |
+| **Authentication** | Custom session management | Laravel Auth + Sanctum |
+| **API** | AJAX endpoints in controllers | RESTful API with resource controllers |
+| **Validation** | Custom InputValidator class | Laravel Form Requests |
+| **Migrations** | SQL schema files | Laravel migrations |
+| **Dependency Injection** | Manual instantiation | Service container |
+| **Testing** | PHPUnit (basic) | PHPUnit + Feature tests |
+| **Caching** | Manual implementation | Laravel Cache facade |
+| **Queue System** | None | Laravel Queue (ready) |
+| **CLI Tools** | None | Artisan commands |
+| **Development Time** | Longer (everything from scratch) | Faster (framework features) |
+| **Learning Curve** | Lower (pure PHP) | Higher (Laravel conventions) |
+| **Scalability** | Manual optimization needed | Built-in scaling features |
+| **Community Support** | Self-maintained | Large Laravel ecosystem |
+
+### Why Two Implementations?
+
+1. **Educational Value:** V1 demonstrates understanding of core web concepts; V2 shows modern framework proficiency
+2. **Production Flexibility:** Choose custom PHP for lightweight deployments or Laravel for enterprise features
+3. **Migration Path:** V1 serves as a stable base while V2 provides a modern upgrade path
+4. **Code Comparison:** Side-by-side comparison of approaches to the same problem
 
 ## Features
 
@@ -286,49 +408,273 @@ The application uses PDO for database connections with ACID compliance. Configur
 
 ## Project Structure
 
-This project contains both the current custom PHP implementation and the new Laravel migration:
+Complete directory structure showing both V1 (root) and V2 (Laravel) implementations:
 
 ```
 MusicLocker-PHP/
-├── public/                 # Custom PHP web root
-│   ├── assets/
-│   │   ├── css/           # Stylesheets
-│   │   ├── js/            # JavaScript files
-│   │   └── img/           # Images
-│   └── index.php          # Application entry point
-├── src/                   # Custom PHP MVC
-│   ├── Controllers/       # Request handlers
-│   ├── Models/           # Data models
-│   ├── Services/         # Business logic
-│   ├── Utils/            # Helper functions
-│   └── Views/            # Templates
-│       ├── auth/         # Authentication views
-│       ├── music/        # Music management views
-│       ├── admin/        # Admin views
-│       ├── playlists/    # Playlist views
-│       └── layouts/      # Layout templates
-├── laravel/               # Laravel migration project
-│   ├── app/              # Laravel application
-│   ├── bootstrap/        # Laravel bootstrap
-│   ├── config/           # Laravel configuration
-│   ├── database/         # Laravel migrations & seeds
-│   ├── public/           # Laravel web root
-│   ├── resources/        # Laravel views & assets
-│   ├── routes/           # Laravel routing
-│   ├── storage/          # Laravel storage
-│   ├── tests/            # Laravel tests
-│   ├── vendor/           # Laravel dependencies
-│   ├── artisan           # Laravel CLI
-│   ├── composer.json     # Laravel dependencies
-│   └── .env.example      # Laravel environment template
-├── database/             # Custom PHP database files
-├── docs/                 # Documentation
-├── tests/                # Custom PHP unit tests
-├── vendor/               # Custom PHP dependencies
-├── .env                  # Environment configuration
-├── .gitignore           # Git ignore rules
-├── composer.json        # Custom PHP dependencies
-└── phpunit.xml          # Test configuration
+│
+├── V1: CUSTOM PHP IMPLEMENTATION (Root Level)
+│   │
+│   ├── /public/                    # Web root for V1
+│   │   ├── /assets/
+│   │   │   ├── /css/              # Stylesheets
+│   │   │   ├── /js/               # JavaScript files
+│   │   │   └── /img/              # Images
+│   │   └── index.php              # Application entry point & router
+│   │
+│   ├── /src/                      # V1 MVC Implementation
+│   │   ├── /Controllers/          # Request handlers
+│   │   │   ├── AdminController.php
+│   │   │   ├── AuthController.php
+│   │   │   ├── BaseController.php
+│   │   │   ├── DashboardController.php
+│   │   │   ├── HomeController.php
+│   │   │   ├── MusicController.php
+│   │   │   ├── PlaylistController.php
+│   │   │   └── SpotifyController.php
+│   │   │
+│   │   ├── /Models/               # Data models
+│   │   │   ├── MusicEntry.php
+│   │   │   ├── MusicNote.php
+│   │   │   ├── Playlist.php
+│   │   │   ├── SystemSetting.php
+│   │   │   ├── Tag.php
+│   │   │   └── User.php
+│   │   │
+│   │   ├── /Services/             # Business logic layer
+│   │   │   ├── Database.php       # PDO wrapper (singleton pattern)
+│   │   │   └── SpotifyService.php # Spotify API integration
+│   │   │
+│   │   ├── /Repositories/         # Data access layer
+│   │   │   ├── BaseRepository.php
+│   │   │   ├── UserRepository.php
+│   │   │   ├── TagRepository.php
+│   │   │   └── /Interfaces/
+│   │   │       ├── UserRepositoryInterface.php
+│   │   │       └── TagRepositoryInterface.php
+│   │   │
+│   │   ├── /Security/             # Security components
+│   │   │   ├── CsrfManager.php    # CSRF token protection
+│   │   │   ├── SessionManager.php # Session handling
+│   │   │   └── InputValidator.php # Input sanitization & validation
+│   │   │
+│   │   ├── /Utils/                # Helper utilities
+│   │   │   ├── ConfigManager.php
+│   │   │   ├── UrlHelper.php
+│   │   │   ├── helpers.php
+│   │   │   └── HelperFunctions.php
+│   │   │
+│   │   └── /Views/                # HTML templates (raw PHP)
+│   │       ├── /auth/             # Authentication views
+│   │       │   ├── login.php
+│   │       │   ├── register.php
+│   │       │   ├── forgot.php
+│   │       │   ├── reset.php
+│   │       │   └── profile.php
+│   │       ├── /music/            # Music management views
+│   │       │   ├── index.php
+│   │       │   ├── add.php
+│   │       │   ├── edit.php
+│   │       │   └── show.php
+│   │       ├── /playlists/        # Playlist views
+│   │       │   ├── index.php
+│   │       │   ├── create.php
+│   │       │   ├── edit.php
+│   │       │   └── show.php
+│   │       ├── /admin/            # Admin panel views
+│   │       │   ├── dashboard.php
+│   │       │   ├── users.php
+│   │       │   ├── user-detail.php
+│   │       │   ├── user-music.php
+│   │       │   ├── settings.php
+│   │       │   └── system-health.php
+│   │       ├── /layouts/          # Layout templates
+│   │       │   └── app.php
+│   │       ├── home.php           # Landing page
+│   │       └── dashboard.php      # User dashboard
+│   │
+│   ├── /config/                   # V1 Configuration files
+│   │   ├── app.php                # Application settings
+│   │   ├── database.php           # Database configuration
+│   │   └── spotify.php            # Spotify API settings
+│   │
+│   ├── /database/                 # Database schemas
+│   │   ├── music_locker.sql       # MySQL/MariaDB schema
+│   │   └── schema.sql             # PostgreSQL schema (Supabase)
+│   │
+│   ├── /tests/                    # V1 Unit tests
+│   │
+│   ├── /scripts/                  # Utility scripts
+│   │
+│   ├── /vendor/                   # V1 Composer dependencies
+│   │
+│   ├── composer.json              # V1 PHP dependencies
+│   ├── composer.lock
+│   ├── phpunit.xml                # Test configuration
+│   ├── .env                       # V1 Environment configuration
+│   └── .env.example               # V1 Environment template
+│
+├── V2: LARAVEL IMPLEMENTATION
+│   │
+│   └── /laravel/                  # Complete Laravel project
+│       │
+│       ├── /app/                  # Laravel application core
+│       │   ├── /Http/
+│       │   │   ├── /Controllers/  # Web & API controllers
+│       │   │   ├── /Middleware/   # Authentication & authorization
+│       │   │   └── /Requests/     # Form validation requests
+│       │   ├── /Models/           # Eloquent ORM models
+│       │   ├── /Services/         # Business logic services
+│       │   ├── /Helpers/          # Helper functions
+│       │   └── /Providers/        # Service providers
+│       │       └── AppServiceProvider.php
+│       │
+│       ├── /bootstrap/            # Laravel bootstrap
+│       │   └── providers.php
+│       │
+│       ├── /config/               # Laravel configuration
+│       │   ├── app.php
+│       │   ├── auth.php
+│       │   ├── cache.php
+│       │   ├── database.php
+│       │   ├── filesystems.php
+│       │   ├── logging.php
+│       │   ├── mail.php
+│       │   ├── queue.php
+│       │   └── session.php
+│       │
+│       ├── /database/             # Database layer
+│       │   ├── /migrations/       # Schema migrations
+│       │   ├── /seeders/          # Database seeders
+│       │   │   └── DatabaseSeeder.php
+│       │   └── /factories/        # Model factories
+│       │       └── UserFactory.php
+│       │
+│       ├── /public/               # V2 Web root
+│       │   ├── index.php          # Laravel entry point
+│       │   ├── favicon.ico
+│       │   └── robots.txt
+│       │
+│       ├── /resources/            # Frontend resources
+│       │   ├── /views/            # Blade templates
+│       │   │   └── welcome.blade.php
+│       │   └── /js/               # JavaScript assets
+│       │       └── bootstrap.js
+│       │
+│       ├── /routes/               # Laravel routing
+│       │   ├── web.php            # Web routes
+│       │   ├── api.php            # API routes
+│       │   └── console.php        # Artisan commands
+│       │
+│       ├── /storage/              # Storage layer
+│       │   ├── /app/              # File storage
+│       │   ├── /framework/        # Framework cache & sessions
+│       │   └── /logs/             # Application logs
+│       │
+│       ├── /tests/                # Laravel tests
+│       │   ├── /Feature/          # Feature tests
+│       │   │   └── ExampleTest.php
+│       │   ├── /Unit/             # Unit tests
+│       │   │   └── ExampleTest.php
+│       │   └── TestCase.php
+│       │
+│       ├── /vendor/               # V2 Composer dependencies (Laravel ecosystem)
+│       │   └── /laravel/
+│       │       ├── /framework/    # Laravel core
+│       │       └── /sanctum/      # API authentication
+│       │
+│       ├── artisan                # Laravel CLI tool
+│       ├── composer.json          # V2 Laravel dependencies
+│       ├── package.json           # Node.js dependencies (Vite)
+│       ├── vite.config.js         # Vite configuration
+│       ├── phpunit.xml            # Laravel test configuration
+│       ├── .env.example           # V2 Environment template
+│       ├── README.md              # Laravel project README
+│       └── CHANGELOG.md           # Version history
+│
+├── DEPLOYMENT & INFRASTRUCTURE
+│   │
+│   ├── /docker/                   # Docker configuration
+│   │   ├── nginx.conf             # Nginx web server config
+│   │   ├── apache.conf            # Alternative Apache config
+│   │   ├── supervisord.conf       # Process supervisor
+│   │   └── start.sh               # Container startup script
+│   │
+│   ├── render.yaml                # Render.com deployment config
+│   └── Dockerfile                 # (V2: located in /laravel/)
+│
+├── DOCUMENTATION
+│   │
+│   ├── /docs/                     # Project documentation
+│   │   └── LARAVEL_SETUP.md       # Laravel setup guide
+│   │
+│   ├── README.md                  # This file
+│   └── LICENSE                    # MIT License
+│
+└── PROJECT FILES
+    │
+    ├── .gitignore                 # Git ignore rules
+    ├── .gitattributes             # Git attributes
+    ├── .env                       # Production environment (V1)
+    ├── .env.example               # Environment template (V1)
+    │
+    └── DEVELOPMENT TOOLS
+        ├── .claude/               # Claude Code configuration
+        └── .cursor/               # Cursor IDE settings
+```
+
+### Key Directories Explained
+
+**V1 (Custom PHP):**
+- [/src](src/): Core application code with MVC architecture
+- [/public](public/): Publicly accessible web root
+- [/config](config/): Application, database, and API configuration
+- [/database](database/): SQL schema files for MySQL and PostgreSQL
+- [/vendor](vendor/): Composer dependencies (PHPDotEnv, Monolog, PHPMailer)
+
+**V2 (Laravel):**
+- [/laravel/app](laravel/app/): Laravel application logic
+- [/laravel/routes](laravel/routes/): Web and API route definitions
+- [/laravel/database](laravel/database/): Migrations and seeders for schema versioning
+- [/laravel/resources](laravel/resources/): Blade templates and frontend assets
+- [/laravel/vendor](laravel/vendor/): Laravel framework and ecosystem packages
+
+**Shared:**
+- [/docker](docker/): Production deployment configurations
+- [/docs](docs/): Comprehensive documentation for both implementations
+- [/storage](storage/): Logs and cached data (V1)
+
+### Dependencies Overview
+
+**V1 Custom PHP Dependencies** ([composer.json](composer.json)):
+```json
+{
+  "require": {
+    "php": "^8.2",
+    "vlucas/phpdotenv": "^5.5",        // Environment management
+    "monolog/monolog": "^3.4",         // Logging
+    "phpmailer/phpmailer": "^6.8"      // Email functionality
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10.3"         // Testing framework
+  }
+}
+```
+
+**V2 Laravel Dependencies** ([/laravel/composer.json](laravel/composer.json)):
+```json
+{
+  "require": {
+    "php": "^8.2",
+    "laravel/framework": "^12.0",      // Laravel core
+    "laravel/sanctum": "^4.0",         // API authentication
+    "laravel/tinker": "^2.9"           // REPL for debugging
+  },
+  "require-dev": {
+    "fakerphp/faker": "^1.23",         // Test data generation
+    "phpunit/phpunit": "^11.0"         // Testing framework
+  }
+}
 ```
 
 ## API Integration
@@ -355,6 +701,182 @@ Music Locker implements multiple security measures:
 - **SQL Injection Prevention** - PDO prepared statements
 - **XSS Prevention** - Output escaping in templates
 
+## Deployment
+
+This project is configured for production deployment on Render.com with Docker containerization.
+
+### Current Production Setup
+
+**Platform:** Render.com
+**Region:** Singapore (Asia/Manila timezone)
+**Database:** Supabase PostgreSQL (pooled connections)
+**Configuration:** [render.yaml](render.yaml)
+
+### Deployment Architecture
+
+```
+Render.com
+    ↓
+Docker Container
+    ├── Nginx (Port 80)
+    │   ├── Static file serving
+    │   ├── Reverse proxy to PHP-FPM
+    │   └── Security headers
+    ├── PHP-FPM 8.2 (Port 9000)
+    │   └── FastCGI process manager
+    └── Supervisord
+        └── Process management
+    ↓
+Supabase (PostgreSQL)
+    └── aws-1-ap-southeast-1.pooler.supabase.com
+```
+
+### Render.com Configuration
+
+**Service Details:**
+- Service Type: Web
+- Runtime: Docker
+- Auto Deploy: Enabled
+- Health Check: `/` endpoint
+- Instances: 1-2 (auto-scaling)
+- Plan: Starter
+
+**Environment Variables:**
+```bash
+APP_ENV=production
+APP_DEBUG=false
+APP_TIMEZONE=Asia/Manila
+LOG_LEVEL=error
+DB_CONNECTION=pgsql
+DB_HOST=aws-1-ap-southeast-1.pooler.supabase.com
+DB_SSLMODE=require
+```
+
+### Docker Configuration
+
+**Nginx Setup ([/docker/nginx.conf](docker/nginx.conf)):**
+- FastCGI proxy to PHP-FPM on 127.0.0.1:9000
+- Gzip compression enabled
+- Static asset caching (365 days)
+- Security headers (X-Frame-Options, X-Content-Type-Options, X-XSS-Protection)
+- Denies access to sensitive directories (.env, /config, /src, /storage, /vendor)
+- Request timeout: 300 seconds
+
+**Supervisord ([/docker/supervisord.conf](docker/supervisord.conf)):**
+- Manages Nginx and PHP-FPM processes
+- Auto-restart on failure
+- Log rotation
+
+**Startup Script ([/docker/start.sh](docker/start.sh)):**
+- Container initialization
+- Environment validation
+- Service startup sequence
+
+### Deployment Steps
+
+#### V1 (Custom PHP) - Render.com
+
+1. **Configure Render Service:**
+   - Connect GitHub repository
+   - Set Docker runtime
+   - Configure environment variables from `.env.example`
+
+2. **Database Setup:**
+   - Create Supabase project
+   - Import `/database/schema.sql` (PostgreSQL)
+   - Configure connection pooling
+   - Update `DB_HOST` in environment variables
+
+3. **Deploy:**
+   - Push to main branch (auto-deploy enabled)
+   - Monitor build logs on Render dashboard
+   - Verify health check status
+
+#### V2 (Laravel) - Render.com
+
+1. **Prepare Laravel:**
+   ```bash
+   cd laravel
+   composer install --no-dev --optimize-autoloader
+   php artisan config:cache
+   php artisan route:cache
+   php artisan view:cache
+   ```
+
+2. **Configure Dockerfile:**
+   - Use `/laravel/Dockerfile` (multi-stage build)
+   - PHP 8.2-FPM Alpine base image
+   - Installs: pdo_pgsql, mbstring, GD, bcmath, zip, exif, pcntl
+
+3. **Database Migration:**
+   ```bash
+   php artisan migrate --force
+   php artisan db:seed --force
+   ```
+
+4. **Deploy:**
+   - Set `dockerfilePath: laravel/Dockerfile` in render.yaml
+   - Configure Laravel environment variables
+   - Deploy and monitor
+
+### Manual Docker Deployment
+
+**Build Image:**
+```bash
+# V1
+docker build -t music-locker-v1 .
+
+# V2
+docker build -t music-locker-v2 -f laravel/Dockerfile laravel/
+```
+
+**Run Container:**
+```bash
+docker run -d \
+  -p 80:80 \
+  --env-file .env \
+  --name music-locker \
+  music-locker-v1
+```
+
+**Verify:**
+```bash
+docker logs music-locker
+docker exec -it music-locker php -v
+```
+
+### Health Monitoring
+
+**Health Check Endpoint:** `/`
+**Expected Response:** HTTP 200
+**Monitoring Tools:**
+- Render.com dashboard (uptime, response time, logs)
+- Custom system health endpoint: `/admin/system-health` (admin only)
+
+### Scaling Considerations
+
+**Horizontal Scaling:**
+- Configure `maxInstances` in render.yaml
+- Session storage: Database-backed sessions (shared state)
+- File uploads: Use external storage (S3, Cloudinary)
+
+**Database Optimization:**
+- Connection pooling enabled (Supabase Pooler)
+- Query optimization with indexes
+- Database view for statistics: `user_music_stats`
+
+**Caching:**
+- V1: Manual file-based caching
+- V2: Laravel Cache (Redis recommended for production)
+
+### Security Notes
+
+- SSL/TLS: Automatic via Render.com
+- Environment variables: Stored securely in Render dashboard
+- Database: SSL required (`DB_SSLMODE=require`)
+- Secrets: Never commit `.env` files to Git
+- File permissions: Nginx runs as non-root user
+
 ## Development
 
 ### Running Tests
@@ -373,6 +895,22 @@ composer cs-check
 
 ```bash
 composer cs-fix
+```
+
+### Development Servers
+
+**V1 (Custom PHP):**
+```bash
+composer serve
+# or
+php -S 127.0.0.1:8888 -t public
+```
+
+**V2 (Laravel):**
+```bash
+cd laravel
+php artisan serve
+# Runs on http://127.0.0.1:8000
 ```
 
 ## Constraints & Assumptions
@@ -397,14 +935,42 @@ Contributions are welcome! Please follow these guidelines:
 
 Please ensure your code follows PSR-12 coding standards and includes appropriate tests.
 
-## Migration Status
+## Implementation Status
 
-This project contains both implementations:
+### V1: Custom PHP (Production)
 
-- **Current Implementation**: Custom PHP MVC (fully functional)
-- **Laravel Implementation**: Complete Laravel migration with Supabase PostgreSQL
-- **Deployment Target**: Render.com
-- **Status**: Both implementations are functional and maintained
+**Status:** ✅ Fully Functional & Deployed
+
+- Live on Render.com
+- PostgreSQL database via Supabase
+- Docker containerization with Nginx + PHP-FPM
+- All features implemented and tested
+- Security measures in place
+- Admin panel operational
+
+**Technology:** Pure PHP 8.2, Custom MVC, PDO, Manual routing
+
+### V2: Laravel (Modern Alternative)
+
+**Status:** ✅ Complete Migration
+
+- Full Laravel 12 implementation
+- Eloquent ORM with PostgreSQL support
+- RESTful API with Laravel Sanctum
+- Blade templating system
+- Database migrations and seeders
+- Ready for deployment
+
+**Technology:** Laravel 12, Eloquent, Artisan CLI, Blade templates
+
+### Migration Path
+
+Developers can choose either implementation based on their needs:
+
+- **Use V1** for: Lightweight deployment, learning PHP fundamentals, custom control
+- **Use V2** for: Rapid development, Laravel ecosystem, modern tooling, API-first design
+
+Both implementations share the same database schema (with minor syntax differences for MySQL vs PostgreSQL) and can coexist in the same repository.
 
 For Laravel setup details, see:
 - [Laravel Setup Guide](docs/LARAVEL_SETUP.md)
