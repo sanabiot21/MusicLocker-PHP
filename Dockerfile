@@ -53,15 +53,14 @@ RUN apk add --no-cache \
 # Install PHP extensions - simple approach
 RUN docker-php-ext-install pdo pdo_pgsql mbstring zip
 
-# Create www-data user and group
-RUN addgroup -g 1000 -S www-data && \
-    adduser -u 1000 -D -S -G www-data www-data
+# Skip user creation - use existing user
+RUN echo "Using existing user setup"
 
 # Set working directory
 WORKDIR /var/www
 
 # Copy built application from builder stage
-COPY --from=builder --chown=www-data:www-data /var/www .
+COPY --from=builder /var/www .
 
 # Copy Nginx configuration
 COPY docker/nginx.conf /etc/nginx/nginx.conf
@@ -72,7 +71,6 @@ COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # Create necessary directories
 RUN mkdir -p /var/log/nginx /var/log/supervisor /run/nginx && \
     mkdir -p /var/www/storage/logs && \
-    chown -R www-data:www-data /var/www/storage && \
     chmod -R 775 /var/www/storage
 
 # Copy startup script
