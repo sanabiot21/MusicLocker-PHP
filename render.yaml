@@ -1,20 +1,20 @@
 services:
-  # Music Locker v1 (Custom PHP Application)
   - type: web
     name: music-locker-v1
     runtime: docker
-    repo: https://github.com/your-username/MusicLocker-PHP  # Update with your repo
-    region: singapore  # or your preferred region
-    plan: starter  # starter or standard
+    repo: https://github.com/your-username/MusicLocker-PHP
+    region: singapore
+    plan: starter
 
-    # Docker configuration
     dockerfilePath: Dockerfile
     dockerContext: .
 
-    # Port mapping
-    port: 80
+    autoDeploy: true
+    maxInstances: 2
+    minInstances: 1
 
-    # Environment variables (will be set in Render dashboard)
+    healthCheckPath: /
+
     envVars:
       - key: APP_ENV
         value: production
@@ -24,36 +24,3 @@ services:
         value: Asia/Manila
       - key: LOG_LEVEL
         value: error
-
-    # Health check
-    healthCheckPath: /
-
-    # Autoscaling
-    autoDeploy: true
-
-    # Build configuration
-    maxInstances: 2
-    minInstances: 1
-
-    # Startup
-    startCommand: /usr/local/bin/start.sh
-
-databases:
-  # Option 1: Using MySQL (Railway or other provider)
-  # - name: mysql-db
-  #   ipAllowList: []
-
-  # Option 2: Using PostgreSQL (Supabase)
-  # Connection details handled via environment variables
-
-envVarGroups:
-  - name: Production
-    envVars:
-      - key: APP_NAME
-        value: Music Locker
-      - key: APP_ENV
-        value: production
-      - key: APP_DEBUG
-        value: false
-      - key: APP_TIMEZONE
-        value: Asia/Manila

@@ -1,56 +1,100 @@
 # Music Locker v1 (Custom PHP) - Render Deployment
-FROM php:8.2-apache
-
-# Set working directory
-WORKDIR /var/www/html
+# Stage 1: Builder
+FROM php:8.2-fpm-alpine AS builder
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
+RUN apk add --no-cache \
     git \
     curl \
     unzip \
+    postgresql-dev \
+    postgresql-libs \
+    openssl \
     libzip-dev \
-    libpq-dev \
-    && docker-php-ext-install \
+    autoconf \
+    g++ \
+    make
+
+# Install PHP extensions
+RUN docker-php-ext-install -j$(nproc) \
     pdo \
     pdo_mysql \
     pdo_pgsql \
     json \
     mbstring \
-    zip \
-    && a2enmod rewrite \
-    && rm -rf /var/lib/apt/lists/*
+    zip
 
 # Install Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Set working directory
+WORKDIR /var/www
 
 # Copy composer files
 COPY composer.json composer.lock* ./
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# Install PHP dependencies (production optimized)
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
-# Copy application code
+# Copy all application code
 COPY . .
 
-# Copy Apache configuration
-COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf
+---
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html \
-    && chmod -R 777 /var/www/html/storage 2>/dev/null || true
+# Stage 2: Production Runtime
+FROM php:8.2-fpm-alpine AS production
+
+# Install runtime dependencies
+RUN apk add --no-cache \
+    nginx \
+    supervisor \
+    postgresql-dev \
+    postgresql-libs \
+    libzip-dev \
+    zip \
+    curl
+
+# Install PHP extensions
+RUN docker-php-ext-install -j$(nproc) \
+    pdo \
+    pdo_mysql \
+    pdo_pgsql \
+    json \
+    mbstring \
+    zip
+
+# Create www-data user and group
+RUN addgroup -g 1000 -S www-data && \
+    adduser -u 1000 -D -S -G www-data www-data
+
+# Set working directory
+WORKDIR /var/www
+
+# Copy built application from builder stage
+COPY --from=builder --chown=www-data:www-data /var/www .
+
+# Copy Nginx configuration
+COPY docker/nginx.conf /etc/nginx/nginx.conf
+
+# Copy supervisor configuration
+COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Create necessary directories
+RUN mkdir -p /var/log/nginx /var/log/supervisor /run/nginx && \
+    mkdir -p /var/www/storage/logs && \
+    chown -R www-data:www-data /var/www/storage && \
+    chmod -R 775 /var/www/storage
 
 # Copy startup script
 COPY docker/start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost/health || exit 1
-
 # Expose port
 EXPOSE 80
 
-# Run startup script
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost/ || exit 1
+
+# Start supervisor
 CMD ["/usr/local/bin/start.sh"]
