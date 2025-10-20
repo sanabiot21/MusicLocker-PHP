@@ -39,8 +39,6 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-di
 # Copy all application code
 COPY . .
 
----
-
 # Stage 2: Production Runtime
 FROM php:8.2-fpm-alpine AS production
 
