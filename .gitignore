@@ -45,6 +45,8 @@ composer.lock
 # IDE & Editor Files
 .vscode/
 .idea/
+.claude/
+.cursor/
 *.swp
 *.swo
 *~
