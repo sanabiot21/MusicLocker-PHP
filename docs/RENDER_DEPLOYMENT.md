@@ -69,7 +69,7 @@ git push origin main
 3. Connect your GitHub repository
 4. Render will automatically detect `render.yaml`
 5. Review the configuration and deploy
-
+    
 #### Option B: Manual Service Creation
 1. Go to [Render Dashboard](https://dashboard.render.com)
 2. Click "New" → "Web Service"

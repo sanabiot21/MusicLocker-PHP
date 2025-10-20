@@ -126,7 +126,7 @@ class TagRepository extends BaseRepository implements TagRepositoryInterface
     /**
      * Check if tag name exists for user
      */
-    public function nameExists(string $name, int $userId, int $excludeId = null): bool
+    public function nameExists(string $name, int $userId, ?int $excludeId = null): bool
     {
         $sql = "SELECT COUNT(*) as count FROM tags WHERE name = ? AND user_id = ?";
         $params = [$name, $userId];

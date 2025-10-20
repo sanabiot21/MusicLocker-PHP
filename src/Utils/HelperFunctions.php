@@ -94,40 +94,103 @@ if (!function_exists('format_duration')) {
 if (!function_exists('format_time_ago')) {
     /**
      * Format datetime as time ago with granular precision
+     * Handles NULL values and timezone conversion properly
      */
     function format_time_ago($datetime): string {
-        $time = time() - strtotime($datetime);
-        
-        // Less than 1 minute
-        if ($time < 60) {
-            return $time <= 5 ? 'just now' : $time . ' sec ago';
+        // Handle NULL values
+        if ($datetime === null || $datetime === '') {
+            return 'Never';
         }
-        
-        // Less than 1 hour (show minutes)
-        if ($time < 3600) {
-            $minutes = floor($time / 60);
-            return $minutes . ' min' . ($minutes > 1 ? 's' : '') . ' ago';
-        }
-        
-        // Less than 24 hours (show hours and minutes)
-        if ($time < 86400) {
-            $hours = floor($time / 3600);
-            $minutes = floor(($time % 3600) / 60);
-            $result = $hours . ' hr' . ($hours > 1 ? 's' : '');
-            if ($minutes > 0) {
-                $result .= ' ' . $minutes . ' min' . ($minutes > 1 ? 's' : '');
+
+        // Convert to DateTime object for proper timezone handling
+        try {
+            // Use application timezone (Manila)
+            $tz = new DateTimeZone(env('APP_TIMEZONE', 'UTC'));
+            $dateTime = new DateTime($datetime, new DateTimeZone('UTC'));
+            $dateTime->setTimezone($tz);
+            $now = new DateTime('now', $tz);
+            $diff = $now->diff($dateTime);
+            
+            // If the date is in the future, return "just now"
+            if ($dateTime > $now) {
+                return 'just now';
             }
-            return $result . ' ago';
+            
+            // Calculate total seconds difference
+            $totalSeconds = $diff->days * 86400 + $diff->h * 3600 + $diff->i * 60 + $diff->s;
+            
+            // Less than 1 minute
+            if ($totalSeconds < 60) {
+                return $totalSeconds <= 5 ? 'just now' : $totalSeconds . ' sec ago';
+            }
+            
+            // Less than 1 hour (show minutes)
+            if ($totalSeconds < 3600) {
+                $minutes = floor($totalSeconds / 60);
+                return $minutes . ' min' . ($minutes > 1 ? 's' : '') . ' ago';
+            }
+            
+            // Less than 24 hours (show hours and minutes)
+            if ($totalSeconds < 86400) {
+                $hours = floor($totalSeconds / 3600);
+                $minutes = floor(($totalSeconds % 3600) / 60);
+                $result = $hours . ' hr' . ($hours > 1 ? 's' : '');
+                if ($minutes > 0) {
+                    $result .= ' ' . $minutes . ' min' . ($minutes > 1 ? 's' : '');
+                }
+                return $result . ' ago';
+            }
+            
+            // Less than 30 days (show days)
+            if ($totalSeconds < 2592000) {
+                $days = floor($totalSeconds / 86400);
+                return $days . ' day' . ($days > 1 ? 's' : '') . ' ago';
+            }
+            
+            // Older than 30 days - show date
+            return $dateTime->format('M j, Y');
+            
+        } catch (Exception $e) {
+            // Fallback to original method if DateTime parsing fails
+            // Note: strtotime() will use the default PHP timezone set in php.ini or date_default_timezone_set()
+            $time = time() - strtotime($datetime);
+            // Ensure we're calculating in the correct timezone by using date_default_timezone_get()
+            if (date_default_timezone_get() !== env('APP_TIMEZONE', 'UTC')) {
+                // If timezone doesn't match, try using the Database service for conversion
+                try {
+                    $db = \MusicLocker\Services\Database::getInstance();
+                    return $db->formatTimeAgo($datetime);
+                } catch (Exception $dbError) {
+                    // If all else fails, continue with fallback
+                }
+            }
+            
+            if ($time < 60) {
+                return $time <= 5 ? 'just now' : $time . ' sec ago';
+            }
+            
+            if ($time < 3600) {
+                $minutes = floor($time / 60);
+                return $minutes . ' min' . ($minutes > 1 ? 's' : '') . ' ago';
+            }
+            
+            if ($time < 86400) {
+                $hours = floor($time / 3600);
+                $minutes = floor(($time % 3600) / 60);
+                $result = $hours . ' hr' . ($hours > 1 ? 's' : '');
+                if ($minutes > 0) {
+                    $result .= ' ' . $minutes . ' min' . ($minutes > 1 ? 's' : '');
+                }
+                return $result . ' ago';
+            }
+            
+            if ($time < 2592000) {
+                $days = floor($time / 86400);
+                return $days . ' day' . ($days > 1 ? 's' : '') . ' ago';
+            }
+            
+            return date('M j, Y', strtotime($datetime));
         }
-        
-        // Less than 30 days (show days)
-        if ($time < 2592000) {
-            $days = floor($time / 86400);
-            return $days . ' day' . ($days > 1 ? 's' : '') . ' ago';
-        }
-        
-        // Older than 30 days - show date
-        return date('M j, Y', strtotime($datetime));
     }
 }
 

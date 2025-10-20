@@ -15,6 +15,12 @@ require_once ROOT_PATH . '/vendor/autoload.php';
 // Load helper functions
 require_once SRC_PATH . '/Utils/HelperFunctions.php';
 require_once SRC_PATH . '/Utils/helpers.php';
+
+// Bootstrap timezone configuration
+// Must be done early before any database operations
+$timezone = env('APP_TIMEZONE', 'Asia/Manila');
+date_default_timezone_set($timezone);
+ini_set('date.timezone', $timezone);
 require_once SRC_PATH . '/Security/CsrfManager.php';
 require_once SRC_PATH . '/Utils/UrlHelper.php';
 

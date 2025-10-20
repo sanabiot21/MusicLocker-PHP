@@ -204,7 +204,7 @@ if (!function_exists('validate_csrf')) {
     /**
      * Validate CSRF token
      */
-    function validate_csrf(string $token = null): bool
+    function validate_csrf(?string $token = null): bool
     {
         $token = $token ?? ($_POST['_token'] ?? $_GET['_token'] ?? '');
         $sessionToken = $_SESSION['_csrf_token'] ?? '';
@@ -262,7 +262,7 @@ if (!function_exists('flash')) {
     /**
      * Set or get flash messages
      */
-    function flash(string $key = null, $value = null)
+    function flash(?string $key = null, $value = null)
     {
         if ($key === null) {
             return $_SESSION['_flash'] ?? [];
@@ -310,7 +310,7 @@ if (!function_exists('abort')) {
     /**
      * Abort with HTTP error
      */
-    function abort(int $code = 404, string $message = null): void
+    function abort(int $code = 404, ?string $message = null): void
     {
         http_response_code($code);
         
@@ -366,7 +366,7 @@ if (!function_exists('log_activity')) {
     /**
      * Log user activity
      */
-    function log_activity(string $action, string $targetType = null, int $targetId = null, string $description = null): void
+    function log_activity(string $action, ?string $targetType = null, ?int $targetId = null, ?string $description = null): void
     {
         if (!is_logged_in()) {
             return;
@@ -495,5 +495,105 @@ if (!function_exists('star_rating')) {
             }
         }
         return $stars;
+    }
+}
+
+/**
+ * Timezone Helper Functions
+ * Support for UTC+8 Manila timezone
+ */
+
+if (!function_exists('format_time_ago')) {
+    /**
+     * Format timestamp as "time ago" string
+     * Handles NULL values and timezone conversion
+     */
+    function format_time_ago(?string $timestamp): string
+    {
+        if (empty($timestamp)) {
+            return 'Never';
+        }
+
+        try {
+            $timestamp = new DateTime($timestamp);
+            $now = new DateTime();
+            $diff = $now->diff($timestamp);
+            
+            if ($diff->days > 0) {
+                if ($diff->days == 1) {
+                    return '1 day ago';
+                } elseif ($diff->days < 7) {
+                    return $diff->days . ' days ago';
+                } elseif ($diff->days < 30) {
+                    $weeks = floor($diff->days / 7);
+                    return $weeks . ($weeks == 1 ? ' week ago' : ' weeks ago');
+                } elseif ($diff->days < 365) {
+                    $months = floor($diff->days / 30);
+                    return $months . ($months == 1 ? ' month ago' : ' months ago');
+                } else {
+                    $years = floor($diff->days / 365);
+                    return $years . ($years == 1 ? ' year ago' : ' years ago');
+                }
+            } elseif ($diff->h > 0) {
+                return $diff->h . ($diff->h == 1 ? ' hour ago' : ' hours ago');
+            } elseif ($diff->i > 0) {
+                return $diff->i . ($diff->i == 1 ? ' minute ago' : ' minutes ago');
+            } else {
+                return 'Just now';
+            }
+        } catch (Exception $e) {
+            error_log("Format time ago error: " . $e->getMessage());
+            return 'Unknown';
+        }
+    }
+}
+
+if (!function_exists('format_timestamp')) {
+    /**
+     * Format timestamp to readable format in application timezone
+     */
+    function format_timestamp(?string $timestamp, string $format = 'M j, Y g:i A'): string
+    {
+        if (empty($timestamp)) {
+            return '';
+        }
+
+        try {
+            $timestamp = new DateTime($timestamp);
+            return $timestamp->format($format);
+        } catch (Exception $e) {
+            error_log("Format timestamp error: " . $e->getMessage());
+            return $timestamp;
+        }
+    }
+}
+
+if (!function_exists('get_timezone_offset')) {
+    /**
+     * Get timezone offset in seconds
+     */
+    function get_timezone_offset(): int
+    {
+        try {
+            // Default to UTC+8 Manila timezone
+            return 28800; // 8 hours * 3600 seconds
+        } catch (Exception $e) {
+            // Default to UTC+8 if error
+            return 28800;
+        }
+    }
+}
+
+if (!function_exists('now_in_timezone')) {
+    /**
+     * Get current timestamp in application timezone
+     */
+    function now_in_timezone(): string
+    {
+        try {
+            return date('Y-m-d H:i:s');
+        } catch (Exception $e) {
+            return date('Y-m-d H:i:s');
+        }
     }
 }

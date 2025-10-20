@@ -57,7 +57,7 @@ class MusicNote
     /**
      * Find note by ID
      */
-    public function findById(int $id, int $userId = null): ?array
+    public function findById(int $id, ?int $userId = null): ?array
     {
         try {
             $sql = "SELECT * FROM music_notes WHERE id = ?";
@@ -99,7 +99,7 @@ class MusicNote
     /**
      * Update music note
      */
-    public function update(int $id, array $data, int $userId = null): bool
+    public function update(int $id, array $data, ?int $userId = null): bool
     {
         try {
             $updateFields = [];
@@ -155,7 +155,7 @@ class MusicNote
     /**
      * Delete music note
      */
-    public function delete(int $id, int $userId = null): bool
+    public function delete(int $id, ?int $userId = null): bool
     {
         try {
             $sql = "DELETE FROM music_notes WHERE id = ?";
@@ -177,7 +177,7 @@ class MusicNote
     /**
      * Delete all notes for a music entry
      */
-    public function deleteByMusicEntry(int $musicEntryId, int $userId = null): bool
+    public function deleteByMusicEntry(int $musicEntryId, ?int $userId = null): bool
     {
         try {
             $sql = "DELETE FROM music_notes WHERE music_entry_id = ?";

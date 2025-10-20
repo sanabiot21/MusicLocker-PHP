@@ -36,7 +36,7 @@ class Playlist
                 $data['user_id'],
                 $data['name'],
                 $data['description'] ?? null,
-                $data['is_public'] ?? false,
+                $this->db->toBool($data['is_public'] ?? false),
                 $data['cover_image_url'] ?? null
             ]);
             
@@ -55,7 +55,7 @@ class Playlist
     /**
      * Find playlist by ID
      */
-    public function findById(int $id, int $userId = null): ?array
+    public function findById(int $id, ?int $userId = null): ?array
     {
         try {
             $sql = "SELECT p.*, 
@@ -114,7 +114,7 @@ class Playlist
     /**
      * Update playlist
      */
-    public function update(int $id, array $data, int $userId = null): bool
+    public function update(int $id, array $data, ?int $userId = null): bool
     {
         try {
             $updateFields = [];
@@ -154,7 +154,7 @@ class Playlist
     /**
      * Delete playlist
      */
-    public function delete(int $id, int $userId = null): bool
+    public function delete(int $id, ?int $userId = null): bool
     {
         try {
             $sql = "DELETE FROM playlists WHERE id = ?";
@@ -176,7 +176,7 @@ class Playlist
     /**
      * Get playlist entries with full music info
      */
-    public function getPlaylistEntries(int $playlistId, int $userId = null): array
+    public function getPlaylistEntries(int $playlistId, ?int $userId = null): array
     {
         try {
             $sql = "SELECT pe.*, me.*, pe.position, pe.id as entry_id
@@ -236,19 +236,23 @@ class Playlist
     /**
      * Remove track from playlist
      */
-    public function removeTrack(int $playlistId, int $entryId, int $userId = null): bool
+    public function removeTrack(int $playlistId, int $entryId, ?int $userId = null): bool
     {
         try {
-            $sql = "DELETE pe FROM playlist_entries pe
-                    INNER JOIN playlists p ON pe.playlist_id = p.id
-                    WHERE pe.id = ? AND pe.playlist_id = ?";
+            // PostgreSQL-compatible DELETE using subquery
+            $sql = "DELETE FROM playlist_entries
+                    WHERE id = ? AND playlist_id = ?";
             $params = [$entryId, $playlistId];
-            
+
             if ($userId !== null) {
-                $sql .= " AND p.user_id = ?";
+                $sql .= " AND EXISTS (
+                    SELECT 1 FROM playlists
+                    WHERE playlists.id = playlist_entries.playlist_id
+                    AND playlists.user_id = ?
+                )";
                 $params[] = $userId;
             }
-            
+
             $success = $this->db->execute($sql, $params);
             
             if ($success) {
@@ -327,6 +331,12 @@ class Playlist
         return $errors;
     }
 }
+
+
+
+
+
+
 
 
 

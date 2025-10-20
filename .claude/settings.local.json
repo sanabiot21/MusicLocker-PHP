@@ -1,15 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "mcp__context7__resolve-library-id",
-      "mcp__context7__get-library-docs",
-      "WebSearch",
-      "WebFetch(domain:12878091ec44.ngrok-free.app)",
+      "Bash(php:*)",
+      "Bash(netstat:*)",
       "Bash(findstr:*)",
-      "Bash(rg:*)",
-      "Bash(curl:*)",
-      "Bash(grep:*)",
-      "Bash(find:*)"
+      "Bash(taskkill /PID 33876 /F)",
+      "Bash(cat \"C:\\Users\\shawn\\Desktop\\MusicLocker-PHP\\src\\Services\\Database.php\")"
     ],
     "deny": [],
     "ask": []

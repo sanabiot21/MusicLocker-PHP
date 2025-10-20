@@ -257,7 +257,8 @@ class User
     public function getUserStats(int $userId): array
     {
         try {
-            $sql = "SELECT 
+            // PostgreSQL requires all non-aggregated columns in GROUP BY
+            $sql = "SELECT
                         u.first_name,
                         u.last_name,
                         u.created_at,
@@ -270,10 +271,10 @@ class User
                     FROM users u
                     LEFT JOIN music_entries me ON u.id = me.user_id
                     WHERE u.id = ?
-                    GROUP BY u.id";
-                    
+                    GROUP BY u.id, u.first_name, u.last_name, u.created_at";
+
             $result = $this->db->queryOne($sql, [$userId]);
-            
+
             return $result ?: [
                 'total_entries' => 0,
                 'five_star_entries' => 0,
@@ -282,7 +283,7 @@ class User
                 'unique_artists' => 0,
                 'unique_genres' => 0
             ];
-            
+
         } catch (Exception $e) {
             error_log("User stats error: " . $e->getMessage());
             return [];
@@ -352,7 +353,8 @@ class User
     public function getNewUsersToday(): int
     {
         try {
-            $sql = "SELECT COUNT(*) as count FROM users WHERE DATE(created_at) = CURDATE()";
+            // Use DATE() function for cross-database compatibility
+            $sql = "SELECT COUNT(*) as count FROM users WHERE DATE(created_at) = CURRENT_DATE";
             $result = $this->db->queryOne($sql);
             return (int)($result['count'] ?? 0);
         } catch (Exception $e) {
@@ -382,22 +384,25 @@ class User
     public function getAllUsers(int $limit = 50, int $offset = 0): array
     {
         try {
-            $sql = "SELECT u.*, 
+            // PostgreSQL requires all non-aggregated columns in GROUP BY
+            $sql = "SELECT u.id, u.first_name, u.last_name, u.email, u.status,
+                           u.created_at, u.updated_at, u.last_login,
                            COUNT(me.id) as music_entries_count
                     FROM users u
                     LEFT JOIN music_entries me ON u.id = me.user_id
-                    GROUP BY u.id
+                    GROUP BY u.id, u.first_name, u.last_name, u.email, u.status,
+                             u.created_at, u.updated_at, u.last_login
                     ORDER BY u.created_at DESC
                     LIMIT ? OFFSET ?";
-            
+
             $results = $this->db->query($sql, [$limit, $offset]);
-            
-            // Remove sensitive data
+
+            // Remove sensitive data (not in query but just in case)
             return array_map(function($user) {
                 unset($user['password_hash'], $user['verification_token'], $user['reset_token']);
                 return $user;
             }, $results);
-            
+
         } catch (Exception $e) {
             error_log("Get all users error: " . $e->getMessage());
             return [];
@@ -411,16 +416,16 @@ class User
     {
         try {
             $activity = [];
-            
-            // Get recent music entries
-            $sql = "SELECT 'music_add' as type, 'Added song' as action, 
-                           CONCAT('Added \"', title, '\" by ', artist) as description,
+
+            // Get recent music entries - use || for PostgreSQL concatenation
+            $sql = "SELECT 'music_add' as type, 'Added song' as action,
+                           'Added \"' || title || '\" by ' || artist as description,
                            date_added as timestamp
-                    FROM music_entries 
+                    FROM music_entries
                     WHERE user_id = ?
                     ORDER BY date_added DESC
                     LIMIT ?";
-            
+
             $musicActivity = $this->db->query($sql, [$userId, $limit]);
             $activity = array_merge($activity, $musicActivity);
             
@@ -450,59 +455,55 @@ class User
 
     /**
      * Get recent system-wide activity (Admin function)
+     * Optimized to use UNION instead of separate queries + PHP sorting
      */
     public function getRecentActivity(int $limit = 10): array
     {
         try {
+            // Use UNION query to combine registrations and music entries, then sort in SQL
+            $sql = "(SELECT 'registration' as type,
+                            first_name || ' ' || last_name as user_name,
+                            email,
+                            created_at as timestamp,
+                            'bi-person-plus' as icon,
+                            'text-success' as color,
+                            'success' as badge_color,
+                            'New User Registration' as title,
+                            first_name || ' ' || last_name || ' joined' as description
+                     FROM users)
+                    UNION ALL
+                    (SELECT 'music_add' as type,
+                            u.first_name || ' ' || u.last_name as user_name,
+                            NULL as email,
+                            me.date_added as timestamp,
+                            'bi-music-note' as icon,
+                            'text-info' as color,
+                            'info' as badge_color,
+                            'Music Entry Added' as title,
+                            u.first_name || ' ' || u.last_name || ' added \"' || me.title || '\"' as description
+                     FROM music_entries me
+                     JOIN users u ON me.user_id = u.id)
+                    ORDER BY timestamp DESC
+                    LIMIT ?";
+
+            $results = $this->db->query($sql, [$limit]);
+
+            // Format results
             $activity = [];
-
-            // Get recent user registrations
-            $sql = "SELECT 'registration' as type,
-                           CONCAT(first_name, ' ', last_name) as user_name,
-                           email,
-                           created_at as timestamp
-                    FROM users
-                    ORDER BY created_at DESC
-                    LIMIT ?";
-            $registrations = $this->db->query($sql, [$limit]);
-
-            foreach ($registrations as $reg) {
+            foreach ($results as $row) {
                 $activity[] = [
-                    'type' => 'registration',
-                    'icon' => 'bi-person-plus',
-                    'color' => 'text-success',
-                    'title' => 'New User Registration',
-                    'description' => $reg['user_name'] . ' joined',
-                    'timestamp' => $reg['timestamp']
+                    'type' => $row['type'],
+                    'icon' => $row['icon'],
+                    'color' => $row['color'],
+                    'badge_color' => $row['badge_color'],
+                    'title' => $row['title'],
+                    'description' => $row['description'],
+                    'user_name' => $row['user_name'],
+                    'timestamp' => $row['timestamp']
                 ];
             }
 
-            // Get recent music entries
-            $sql = "SELECT me.title, me.artist, me.date_added as timestamp,
-                           CONCAT(u.first_name, ' ', u.last_name) as user_name
-                    FROM music_entries me
-                    JOIN users u ON me.user_id = u.id
-                    ORDER BY me.date_added DESC
-                    LIMIT ?";
-            $musicEntries = $this->db->query($sql, [$limit]);
-
-            foreach ($musicEntries as $entry) {
-                $activity[] = [
-                    'type' => 'music_add',
-                    'icon' => 'bi-music-note',
-                    'color' => 'text-info',
-                    'title' => 'Music Entry Added',
-                    'description' => $entry['user_name'] . ' added "' . $entry['title'] . '"',
-                    'timestamp' => $entry['timestamp']
-                ];
-            }
-
-            // Sort by timestamp desc
-            usort($activity, function($a, $b) {
-                return strtotime($b['timestamp']) - strtotime($a['timestamp']);
-            });
-
-            return array_slice($activity, 0, $limit);
+            return $activity;
 
         } catch (Exception $e) {
             error_log("Get recent activity error: " . $e->getMessage());
@@ -584,7 +585,7 @@ class User
                     FROM activity_log al
                     JOIN users u ON al.user_id = u.id
                     WHERE al.action = 'password_reset_request'
-                    AND al.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                    AND al.created_at >= (NOW() - INTERVAL '7 days')
                     ORDER BY al.created_at DESC";
 
             return $this->db->query($sql);
@@ -604,7 +605,7 @@ class User
             $sql = "SELECT COUNT(*) as count
                     FROM activity_log
                     WHERE action = 'password_reset_request'
-                    AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+                    AND created_at >= (NOW() - INTERVAL '7 days')";
 
             $result = $this->db->queryOne($sql);
             return (int)($result['count'] ?? 0);
@@ -648,13 +649,16 @@ class User
     public function approveResetRequest(int $userId): bool
     {
         try {
-            // Just update the action to mark as approved
+            // PostgreSQL doesn't support ORDER BY/LIMIT in UPDATE, so use subquery
             $sql = "UPDATE activity_log
-                    SET action = 'password_reset_approved', description = CONCAT(description, ' - APPROVED')
-                    WHERE user_id = ?
-                    AND action = 'password_reset_request'
-                    ORDER BY created_at DESC
-                    LIMIT 1";
+                    SET action = 'password_reset_approved', description = description || ' - APPROVED'
+                    WHERE id = (
+                        SELECT id FROM activity_log
+                        WHERE user_id = ?
+                        AND action = 'password_reset_request'
+                        ORDER BY created_at DESC
+                        LIMIT 1
+                    )";
 
             return $this->db->execute($sql, [$userId]);
 
@@ -675,7 +679,7 @@ class User
                     JOIN users u ON al.user_id = u.id
                     WHERE u.email = ?
                     AND al.action = 'password_reset_approved'
-                    AND al.created_at >= DATE_SUB(NOW(), INTERVAL 1 DAY)
+                    AND al.created_at >= (NOW() - INTERVAL '1 day')
                     ORDER BY al.created_at DESC
                     LIMIT 1";
 
@@ -698,7 +702,7 @@ class User
                     JOIN users u ON al.user_id = u.id
                     WHERE u.email = ?
                     AND al.action = 'password_reset_request'
-                    AND al.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                    AND al.created_at >= (NOW() - INTERVAL '7 days')
                     ORDER BY al.created_at DESC
                     LIMIT 1";
 
@@ -719,7 +723,7 @@ class User
             $sql = "DELETE FROM activity_log
                     WHERE user_id = ?
                     AND action IN ('password_reset_request', 'password_reset_approved')
-                    AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+                    AND created_at >= (NOW() - INTERVAL '7 days')";
 
             return $this->db->execute($sql, [$userId]);
 
@@ -736,7 +740,7 @@ class User
     {
         try {
             $sql = "SELECT COUNT(*) as count FROM users
-                    WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+                    WHERE created_at >= (NOW() - INTERVAL '7 days')";
             $result = $this->db->queryOne($sql);
             return (int)($result['count'] ?? 0);
         } catch (Exception $e) {
@@ -752,7 +756,7 @@ class User
     {
         try {
             $sql = "SELECT COUNT(*) as count FROM music_entries
-                    WHERE date_added >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+                    WHERE date_added >= (NOW() - INTERVAL '7 days')";
             $result = $this->db->queryOne($sql);
             return (int)($result['count'] ?? 0);
         } catch (Exception $e) {
@@ -767,10 +771,11 @@ class User
     public function getMostActiveUser(): ?array
     {
         try {
+            // PostgreSQL requires all non-aggregated columns in GROUP BY
             $sql = "SELECT u.id, u.first_name, u.last_name, COUNT(me.id) as song_count
                     FROM users u
                     LEFT JOIN music_entries me ON u.id = me.user_id
-                    GROUP BY u.id
+                    GROUP BY u.id, u.first_name, u.last_name
                     ORDER BY song_count DESC
                     LIMIT 1";
             return $this->db->queryOne($sql);
@@ -786,10 +791,11 @@ class User
     public function getPopularTag(): ?array
     {
         try {
-            $sql = "SELECT t.name, COUNT(met.music_entry_id) as usage_count
+            // PostgreSQL requires all non-aggregated columns in GROUP BY
+            $sql = "SELECT t.id, t.name, COUNT(met.music_entry_id) as usage_count
                     FROM tags t
                     LEFT JOIN music_entry_tags met ON t.id = met.tag_id
-                    GROUP BY t.id
+                    GROUP BY t.id, t.name
                     ORDER BY usage_count DESC
                     LIMIT 1";
             return $this->db->queryOne($sql);

@@ -125,7 +125,7 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
     /**
      * Check if email exists
      */
-    public function emailExists(string $email, int $excludeUserId = null): bool
+    public function emailExists(string $email, ?int $excludeUserId = null): bool
     {
         $sql = "SELECT COUNT(*) as count FROM users WHERE email = ?";
         $params = [$email];

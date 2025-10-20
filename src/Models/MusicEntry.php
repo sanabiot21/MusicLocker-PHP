@@ -47,7 +47,8 @@ class MusicEntry
                 $data['album_art_url'] ?? null,
                 $data['personal_rating'] ?? 3,
                 $data['date_discovered'] ?? date('Y-m-d'),
-                $data['is_favorite'] ?? false
+                // Convert boolean to 0/1 for PostgreSQL
+                (int)($data['is_favorite'] ?? false)
             ]);
             
             if ($result) {
@@ -72,17 +73,10 @@ class MusicEntry
     /**
      * Find music entry by ID
      */
-    public function findById(int $id, int $userId = null): ?array
+    public function findById(int $id, ?int $userId = null): ?array
     {
         try {
-            $sql = "SELECT me.*, 
-                           GROUP_CONCAT(t.name) as tag_names,
-                           GROUP_CONCAT(t.color) as tag_colors,
-                           GROUP_CONCAT(t.id) as tag_ids
-                    FROM music_entries me
-                    LEFT JOIN music_entry_tags met ON me.id = met.music_entry_id
-                    LEFT JOIN tags t ON met.tag_id = t.id
-                    WHERE me.id = ?";
+            $sql = "SELECT me.* FROM music_entries me WHERE me.id = ?";
             
             $params = [$id];
             
@@ -91,11 +85,13 @@ class MusicEntry
                 $params[] = $userId;
             }
             
-            $sql .= " GROUP BY me.id LIMIT 1";
+            $sql .= " LIMIT 1";
             
             $result = $this->db->queryOne($sql, $params);
             
             if ($result) {
+                // Fetch tags for this entry
+                $result['tags'] = $this->getEntryTags($id);
                 $result = $this->formatMusicEntry($result);
             }
             
@@ -134,28 +130,37 @@ class MusicEntry
     public function getUserCollection(int $userId, array $options = []): array
     {
         try {
-            // Build base query
-            $sql = "SELECT me.*, 
-                           GROUP_CONCAT(t.name) as tag_names,
-                           GROUP_CONCAT(t.color) as tag_colors,
-                           GROUP_CONCAT(t.id) as tag_ids
+            $likeOp = $this->db->getLikeOperator();
+
+            // Build base query with LEFT JOIN for tags (avoids N+1 query problem)
+            $sql = "SELECT me.*,
+                           STRING_AGG(DISTINCT t.id::text, ',') as tag_ids,
+                           STRING_AGG(DISTINCT t.name, ',') as tag_names,
+                           STRING_AGG(DISTINCT t.color, ',') as tag_colors
                     FROM music_entries me
                     LEFT JOIN music_entry_tags met ON me.id = met.music_entry_id
                     LEFT JOIN tags t ON met.tag_id = t.id
                     WHERE me.user_id = ?";
-            
+
             $params = [$userId];
             $conditions = [];
-            
-            // Add search filter (includes title, artist, album, and tag names)
+
+            // Add tag filter in SQL (not PHP)
+            $tagFilter = $options['tag'] ?? $options['tag_ids'] ?? null;
+            if (!empty($tagFilter)) {
+                $tagIds = is_array($tagFilter) ? $tagFilter : [$tagFilter];
+                $placeholders = implode(',', array_fill(0, count($tagIds), '?'));
+                $conditions[] = "me.id IN (
+                    SELECT music_entry_id FROM music_entry_tags WHERE tag_id IN ($placeholders)
+                )";
+                $params = array_merge($params, $tagIds);
+            }
+
+            // Add search filter (includes title, artist, album) - use ILIKE for PostgreSQL
             if (!empty($options['search'])) {
-                $conditions[] = "(me.title LIKE ? OR me.artist LIKE ? OR me.album LIKE ? OR me.id IN (
-                    SELECT DISTINCT met.music_entry_id FROM music_entry_tags met 
-                    JOIN tags t ON met.tag_id = t.id 
-                    WHERE t.name LIKE ?
-                ))";
+                $conditions[] = "(me.title $likeOp ? OR me.artist $likeOp ? OR me.album $likeOp ?)";
                 $searchTerm = '%' . $options['search'] . '%';
-                $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm]);
+                $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm]);
             }
             
             // Add genre filter
@@ -166,22 +171,13 @@ class MusicEntry
             
             // Add rating filter
             if (!empty($options['rating'])) {
-                $conditions[] = "me.personal_rating = ?";
+                $conditions[] = "me.personal_rating >= ?";
                 $params[] = $options['rating'];
             }
             
             // Add favorites filter
             if (isset($options['favorites']) && $options['favorites']) {
                 $conditions[] = "me.is_favorite = TRUE";
-            }
-            
-            // Add tag filter (supports both 'tag' and 'tag_ids' for backwards compatibility)
-            $tagFilter = $options['tag'] ?? $options['tag_ids'] ?? null;
-            if (!empty($tagFilter)) {
-                $tagIds = is_array($tagFilter) ? $tagFilter : [$tagFilter];
-                $placeholders = str_repeat('?,', count($tagIds) - 1) . '?';
-                $conditions[] = "me.id IN (SELECT DISTINCT met.music_entry_id FROM music_entry_tags met WHERE met.tag_id IN ($placeholders))";
-                $params = array_merge($params, $tagIds);
             }
             
             // Add year range filter
@@ -199,50 +195,56 @@ class MusicEntry
             if (!empty($conditions)) {
                 $sql .= " AND " . implode(" AND ", $conditions);
             }
-            
-            $sql .= " GROUP BY me.id";
-            
+
+            // Group by all music_entries columns (required for PostgreSQL aggregate functions)
+            $sql .= " GROUP BY me.id, me.user_id, me.title, me.artist, me.album, me.genre,
+                               me.release_year, me.duration, me.spotify_id, me.spotify_url,
+                               me.album_art_url, me.personal_rating, me.date_discovered,
+                               me.is_favorite, me.date_added, me.updated_at";
+
             // Add sorting
             $sortBy = $options['sort_by'] ?? 'date_added';
             $sortOrder = $options['sort_order'] ?? 'DESC';
-            
+
             $allowedSortFields = [
-                'date_added', 'title', 'artist', 'album', 'personal_rating', 
+                'date_added', 'title', 'artist', 'album', 'personal_rating',
                 'release_year'
             ];
-            
+
             if (in_array($sortBy, $allowedSortFields)) {
                 $sql .= " ORDER BY me.$sortBy $sortOrder";
             } else {
                 $sql .= " ORDER BY me.date_added DESC";
             }
-            
+
+            // Get total count for pagination (before LIMIT)
+            // Remove the GROUP BY and aggregation for count
+            $countSql = "SELECT COUNT(DISTINCT me.id) as total FROM music_entries me";
+            if (!empty($tagFilter)) {
+                $countSql .= " LEFT JOIN music_entry_tags met ON me.id = met.music_entry_id
+                               LEFT JOIN tags t ON met.tag_id = t.id";
+            }
+            $countSql .= " WHERE me.user_id = ?";
+            if (!empty($conditions)) {
+                $countSql .= " AND " . implode(" AND ", $conditions);
+            }
+            $totalResult = $this->db->queryOne($countSql, $params);
+            $total = $totalResult['total'] ?? 0;
+
             // Add pagination
             $limit = $options['limit'] ?? 20;
             $offset = $options['offset'] ?? 0;
-            
+
             $sql .= " LIMIT ? OFFSET ?";
             $params[] = $limit;
             $params[] = $offset;
-            
-            $results = $this->db->query($sql, $params);
-            
-            // Format results
-            $entries = array_map([$this, 'formatMusicEntry'], $results);
-            
-            // Get total count for pagination
-            $countSql = str_replace(
-                "SELECT me.*, GROUP_CONCAT(t.name) as tag_names, GROUP_CONCAT(t.color) as tag_colors, GROUP_CONCAT(t.id) as tag_ids FROM music_entries me LEFT JOIN music_entry_tags met ON me.id = met.music_entry_id LEFT JOIN tags t ON met.tag_id = t.id",
-                "SELECT COUNT(DISTINCT me.id) as total FROM music_entries me LEFT JOIN music_entry_tags met ON me.id = met.music_entry_id LEFT JOIN tags t ON met.tag_id = t.id",
-                $sql
-            );
-            
-            // Remove GROUP BY, ORDER BY, LIMIT clauses for count query
-            $countSql = preg_replace('/ GROUP BY.*$/', '', $countSql);
-            $countParams = array_slice($params, 0, -2); // Remove LIMIT and OFFSET params
-            
-            $totalResult = $this->db->queryOne($countSql, $countParams);
-            $total = $totalResult['total'] ?? 0;
+
+            $entries = $this->db->query($sql, $params);
+
+            // Format entries and parse tags from aggregated data
+            foreach ($entries as &$entry) {
+                $entry = $this->formatMusicEntry($entry);
+            }
             
             return [
                 'entries' => $entries,
@@ -283,7 +285,7 @@ class MusicEntry
     /**
      * Update music entry
      */
-    public function update(int $id, array $data, int $userId = null): bool
+    public function update(int $id, array $data, ?int $userId = null): bool
     {
         try {
             $updateFields = [];
@@ -298,7 +300,12 @@ class MusicEntry
             foreach ($allowedFields as $field) {
                 if (array_key_exists($field, $data)) {
                     $updateFields[] = "$field = ?";
-                    $params[] = $data[$field];
+                    // Convert boolean to 0/1 for is_favorite
+                    if ($field === 'is_favorite') {
+                        $params[] = $data[$field] ? 1 : 0;
+                    } else {
+                        $params[] = $data[$field];
+                    }
                 }
             }
             
@@ -334,7 +341,7 @@ class MusicEntry
     /**
      * Delete music entry
      */
-    public function delete(int $id, int $userId = null): bool
+    public function delete(int $id, ?int $userId = null): bool
     {
         try {
             $sql = "DELETE FROM music_entries WHERE id = ?";
@@ -442,7 +449,7 @@ class MusicEntry
                         COUNT(*) as total_entries,
                         COUNT(CASE WHEN personal_rating = 5 THEN 1 END) as five_star_count,
                         COUNT(CASE WHEN is_favorite = TRUE THEN 1 END) as favorites_count,
-                        COUNT(CASE WHEN date_added >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 END) as recent_additions,
+                        COUNT(CASE WHEN date_added >= (NOW() - INTERVAL '7 days') THEN 1 END) as recent_additions,
                         AVG(CASE WHEN personal_rating IS NOT NULL THEN personal_rating END) as average_rating,
                         COUNT(DISTINCT artist) as unique_artists,
                         COUNT(DISTINCT album) as unique_albums,
@@ -581,27 +588,33 @@ class MusicEntry
      */
     private function formatMusicEntry(array $entry): array
     {
-        // Process tags
-        if (!empty($entry['tag_names'])) {
-            $tagNames = explode(',', $entry['tag_names']);
-            $tagColors = explode(',', $entry['tag_colors']);
-            $tagIds = explode(',', $entry['tag_ids']);
-            
-            $entry['tags'] = [];
-            for ($i = 0; $i < count($tagNames); $i++) {
-                if (!empty($tagNames[$i])) {
-                    $entry['tags'][] = [
-                        'id' => $tagIds[$i],
-                        'name' => $tagNames[$i],
-                        'color' => $tagColors[$i] ?? '#6c757d'
-                    ];
+        // Process tags - handle both array format and aggregated CSV format
+        if (!isset($entry['tags'])) {
+            // Parse aggregated tag data from STRING_AGG
+            if (!empty($entry['tag_names'])) {
+                $tagNames = explode(',', $entry['tag_names']);
+                $tagColors = explode(',', $entry['tag_colors'] ?? '');
+                $tagIds = explode(',', $entry['tag_ids'] ?? '');
+
+                $entry['tags'] = [];
+                for ($i = 0; $i < count($tagNames); $i++) {
+                    if (!empty($tagNames[$i])) {
+                        $entry['tags'][] = [
+                            'id' => $tagIds[$i] ?? null,
+                            'name' => $tagNames[$i],
+                            'color' => $tagColors[$i] ?? '#6c757d'
+                        ];
+                    }
                 }
+            } else {
+                $entry['tags'] = [];
             }
-        } else {
+        } else if (!is_array($entry['tags'])) {
+            // Handle unexpected format
             $entry['tags'] = [];
         }
-        
-        // Remove the concatenated tag fields
+
+        // Remove the concatenated tag fields if they exist
         unset($entry['tag_names'], $entry['tag_colors'], $entry['tag_ids']);
         
         // Format duration

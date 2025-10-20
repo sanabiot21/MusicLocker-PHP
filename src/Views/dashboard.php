@@ -170,11 +170,8 @@
                 <?php else: ?>
                     <!-- Recent Activity Section -->
                     <div class="feature-card">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="mb-4">
                             <h4 class="mb-0">Recent Activity</h4>
-                            <a href="<?= route_url('music.index') ?>" class="btn btn-sm btn-outline-glow">
-                                View All <i class="bi bi-arrow-right ms-1"></i>
-                            </a>
                         </div>
                         
                         <?php if (!empty($recentActivity)): ?>
@@ -236,7 +233,70 @@
             font-size: 2rem;
         }
     }
+
+    /* Activity Timeline Styles */
+    .activity-timeline {
+        position: relative;
+    }
+
+    .activity-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    .activity-item:not(:last-child)::before {
+        content: '';
+        position: absolute;
+        left: 1.25rem;
+        top: 2.5rem;
+        bottom: -1.5rem;
+        width: 2px;
+        background: var(--border-color, #2d2d3d);
+    }
+
+    .activity-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        background: var(--card-bg, #1e1e2e);
+        border: 2px solid var(--border-color, #2d2d3d);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        flex-shrink: 0;
+        font-size: 1rem;
+    }
+
+    .activity-content {
+        flex: 1;
+        padding-top: 0.25rem;
+    }
+
+    .activity-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.25rem;
+    }
+
+    .activity-header strong {
+        color: var(--text-primary, #ffffff);
+        font-size: 0.9rem;
+    }
+
+    .activity-header small {
+        font-size: 0.75rem;
+    }
+
+    .activity-description {
+        color: var(--text-secondary, #a0a0b0);
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
 </style>
-<?php 
+<?php
 $additional_css = ob_get_clean();
 ?>

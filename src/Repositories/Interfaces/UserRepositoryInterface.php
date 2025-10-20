@@ -48,7 +48,7 @@ interface UserRepositoryInterface
     /**
      * Check if email exists
      */
-    public function emailExists(string $email, int $excludeUserId = null): bool;
+    public function emailExists(string $email, ?int $excludeUserId = null): bool;
     
     /**
      * Update last login timestamp

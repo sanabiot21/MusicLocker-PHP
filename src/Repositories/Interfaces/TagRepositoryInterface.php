@@ -48,7 +48,7 @@ interface TagRepositoryInterface
     /**
      * Check if tag name exists for user
      */
-    public function nameExists(string $name, int $userId, int $excludeId = null): bool;
+    public function nameExists(string $name, int $userId, ?int $excludeId = null): bool;
     
     /**
      * Get tags assigned to a music entry

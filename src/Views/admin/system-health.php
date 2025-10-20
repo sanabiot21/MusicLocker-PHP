@@ -139,55 +139,50 @@
                     $dbTests = [];
                     
                     try {
-                        // Test basic MySQL connection
-                        $host = env('DB_HOST', '127.0.0.1');
-                        $username = env('DB_USERNAME', 'root');
-                        $password = env('DB_PASSWORD', '');
+                        $db = \MusicLocker\Services\Database::getInstance();
                         
-                        $pdo = new PDO("mysql:host=$host", $username, $password);
-                        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                        $dbTests['MySQL Connection'] = 'CONNECTED';
-                        
-                        // Check if music_locker database exists
-                        $stmt = $pdo->query("SHOW DATABASES LIKE 'music_locker'");
-                        if ($stmt->rowCount() > 0) {
-                            $dbTests['music_locker Database'] = 'EXISTS';
+                        // Test database connection
+                        if ($db->testConnection()) {
+                            $dbTests['Database Connection'] = 'CONNECTED';
                             
-                            // Connect to the database
-                            try {
-                                $musicPdo = new PDO("mysql:host=$host;dbname=music_locker", $username, $password);
-                                $musicPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                            // Get database info
+                            $dbInfo = $db->getInfo();
+                            
+                            if (isset($dbInfo['error'])) {
+                                $dbTests['Database Info'] = 'ERROR';
+                            } else {
+                                $dbTests['Driver'] = ucfirst($db->getDriver());
+                                $dbTests['Database'] = $dbInfo['database'] ?? 'unknown';
+                                $dbTests['Version'] = $dbInfo['version'] ?? 'unknown';
                                 
-                                // Check for key tables
-                                $requiredTables = ['users', 'music_entries', 'tags', 'music_notes'];
-                                $stmt = $musicPdo->query("SHOW TABLES");
-                                $existingTables = $stmt->fetchAll(PDO::FETCH_COLUMN);
-                                
-                                $tableCount = 0;
-                                foreach ($requiredTables as $table) {
-                                    if (in_array($table, $existingTables)) {
-                                        $tableCount++;
-                                    }
+                                if ($db->getDriver() === 'pgsql') {
+                                    $dbTests['Encoding'] = $dbInfo['encoding'] ?? 'unknown';
+                                } else {
+                                    $dbTests['Charset'] = $dbInfo['charset'] ?? 'unknown';
+                                    $dbTests['Collation'] = $dbInfo['collation'] ?? 'unknown';
                                 }
                                 
-                                $dbTests['Required Tables'] = "$tableCount/" . count($requiredTables) . " FOUND";
+                                // Check for required tables
+                                $requiredTables = ['users', 'music_entries', 'tags', 'music_notes'];
+                                $tableCheck = $db->checkRequiredTables($requiredTables);
+                                $foundTables = count(array_filter($tableCheck));
                                 
-                            } catch (PDOException $e) {
-                                $dbTests['Database Access'] = 'ERROR';
+                                $dbTests['Required Tables'] = "$foundTables/" . count($requiredTables) . " FOUND";
                             }
                         } else {
-                            $dbTests['music_locker Database'] = 'MISSING';
+                            $dbTests['Database Connection'] = 'ERROR';
                         }
                         
-                    } catch (PDOException $e) {
-                        $dbTests['MySQL Connection'] = 'ERROR';
+                    } catch (Exception $e) {
+                        $dbTests['Database Connection'] = 'ERROR';
+                        error_log("System health database check error: " . $e->getMessage());
                     }
                     
                     foreach ($dbTests as $test => $result) {
                         $statusClass = 'status-success';
                         $icon = 'bi-check-circle';
                         
-                        if (strpos($result, 'ERROR') !== false || strpos($result, 'MISSING') !== false) {
+                        if (strpos($result, 'ERROR') !== false) {
                             $statusClass = 'status-error';
                             $icon = 'bi-x-circle';
                         } elseif (strpos($result, '/') !== false && !str_contains($result, '4/4')) {
@@ -373,34 +368,6 @@
                 </div>
             </div>
 
-            <!-- Quick Actions -->
-            <div class="col-12">
-                <div class="feature-card">
-                    <h4 class="mb-3">System Actions</h4>
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <button class="btn btn-glow w-100" onclick="clearCache()">
-                                <i class="bi bi-trash me-2"></i>Clear Cache
-                            </button>
-                        </div>
-                        <div class="col-md-3">
-                            <button class="btn btn-outline-glow w-100" onclick="viewLogs()">
-                                <i class="bi bi-file-text me-2"></i>View Logs
-                            </button>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="http://localhost/phpmyadmin/" class="btn btn-outline-info w-100" target="_blank">
-                                <i class="bi bi-database me-2"></i>phpMyAdmin
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <button class="btn btn-outline-secondary w-100" onclick="exportSystemInfo()">
-                                <i class="bi bi-download me-2"></i>Export Report
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </section>
@@ -412,19 +379,6 @@
         location.reload();
     }
     
-    function clearCache() {
-        if (confirm('Are you sure you want to clear the system cache?')) {
-            alert('Cache clear functionality would be implemented here');
-        }
-    }
-    
-    function viewLogs() {
-        alert('Log viewer would be implemented here');
-    }
-    
-    function exportSystemInfo() {
-        alert('System report export would be implemented here');
-    }
 </script>
 <?php 
 $additional_js = ob_get_clean();

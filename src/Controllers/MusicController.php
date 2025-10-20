@@ -275,17 +275,19 @@ class MusicController extends BaseController
                 'spotify_url' => $this->input('spotify_url'),
                 'album_art_url' => $this->input('album_art_url'),
                 'personal_rating' => $this->input('personal_rating'),
-                'is_favorite' => $this->input('is_favorite') !== null,
+                'is_favorite' => !empty($this->input('is_favorite')),
                 'date_discovered' => date('Y-m-d')
             ]);
         } catch (\Exception $e) {
             error_log("Music entry creation failed: " . $e->getMessage());
+            error_log("Exception trace: " . $e->getTraceAsString());
             
             // Check if it's a duplicate key error
             if (str_contains($e->getMessage(), 'Duplicate entry') || str_contains($e->getMessage(), '1062')) {
                 flash('warning', 'This track is already in your collection.');
             } else {
-                flash('error', 'Failed to add music entry. Please try again.');
+                // Show actual error message for debugging
+                flash('error', 'Failed to add music entry: ' . substr($e->getMessage(), 0, 100));
             }
             
             $this->redirect(route_url('music.add'));

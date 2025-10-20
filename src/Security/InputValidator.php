@@ -145,7 +145,7 @@ class InputValidator
     /**
      * Validate integer within range
      */
-    public static function integer($value, int $min = null, int $max = null): array
+    public static function integer($value, ?int $min = null, ?int $max = null): array
     {
         if ($value === '' || $value === null) {
             return ['valid' => true, 'value' => null];
