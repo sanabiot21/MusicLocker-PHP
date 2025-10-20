@@ -13,16 +13,17 @@ RUN apk add --no-cache \
     libzip-dev \
     autoconf \
     g++ \
-    make
+    make \
+    linux-headers
 
-# Install PHP extensions
-RUN docker-php-ext-install -j$(nproc) \
-    pdo \
-    pdo_mysql \
-    pdo_pgsql \
-    json \
-    mbstring \
-    zip
+# Install PHP extensions one by one for better error handling
+RUN set -e && \
+    echo "Installing PHP extensions..." && \
+    docker-php-ext-install pdo && \
+    docker-php-ext-install pdo_pgsql && \
+    docker-php-ext-install mbstring && \
+    docker-php-ext-install zip && \
+    echo "PHP extensions installed successfully"
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -50,16 +51,17 @@ RUN apk add --no-cache \
     postgresql-libs \
     libzip-dev \
     zip \
-    curl
+    curl \
+    linux-headers
 
-# Install PHP extensions
-RUN docker-php-ext-install -j$(nproc) \
-    pdo \
-    pdo_mysql \
-    pdo_pgsql \
-    json \
-    mbstring \
-    zip
+# Install PHP extensions one by one for better error handling
+RUN set -e && \
+    echo "Installing PHP extensions..." && \
+    docker-php-ext-install pdo && \
+    docker-php-ext-install pdo_pgsql && \
+    docker-php-ext-install mbstring && \
+    docker-php-ext-install zip && \
+    echo "PHP extensions installed successfully"
 
 # Create www-data user and group
 RUN addgroup -g 1000 -S www-data && \
