@@ -1,6 +1,6 @@
 # Music Locker v1 (Custom PHP) - Render Deployment
 # Stage 1: Builder
-FROM php:8.2-fpm-alpine AS builder
+FROM php:8.2-cli-alpine AS builder
 
 # Install system dependencies
 RUN apk add --no-cache \
@@ -14,16 +14,11 @@ RUN apk add --no-cache \
     autoconf \
     g++ \
     make \
-    linux-headers
+    linux-headers \
+    oniguruma-dev
 
-# Install PHP extensions one by one for better error handling
-RUN set -e && \
-    echo "Installing PHP extensions..." && \
-    docker-php-ext-install pdo && \
-    docker-php-ext-install pdo_pgsql && \
-    docker-php-ext-install mbstring && \
-    docker-php-ext-install zip && \
-    echo "PHP extensions installed successfully"
+# Install PHP extensions - simple approach
+RUN docker-php-ext-install pdo pdo_pgsql mbstring zip
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -41,7 +36,7 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-di
 COPY . .
 
 # Stage 2: Production Runtime
-FROM php:8.2-fpm-alpine AS production
+FROM php:8.2-cli-alpine AS production
 
 # Install runtime dependencies
 RUN apk add --no-cache \
@@ -52,16 +47,11 @@ RUN apk add --no-cache \
     libzip-dev \
     zip \
     curl \
-    linux-headers
+    linux-headers \
+    oniguruma-dev
 
-# Install PHP extensions one by one for better error handling
-RUN set -e && \
-    echo "Installing PHP extensions..." && \
-    docker-php-ext-install pdo && \
-    docker-php-ext-install pdo_pgsql && \
-    docker-php-ext-install mbstring && \
-    docker-php-ext-install zip && \
-    echo "PHP extensions installed successfully"
+# Install PHP extensions - simple approach
+RUN docker-php-ext-install pdo pdo_pgsql mbstring zip
 
 # Create www-data user and group
 RUN addgroup -g 1000 -S www-data && \
