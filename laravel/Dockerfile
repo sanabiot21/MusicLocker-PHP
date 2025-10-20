@@ -151,6 +151,7 @@ COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # Create necessary directories and set permissions
 RUN mkdir -p /var/log/nginx /var/log/supervisor /run/nginx && \
     mkdir -p /var/www/storage/app /var/www/storage/framework /var/www/storage/logs && \
+    mkdir -p /var/www/storage/framework/views /var/www/storage/framework/cache /var/www/storage/framework/sessions && \
     mkdir -p /var/www/bootstrap/cache && \
     ls -la /var/www/ && \
     chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache || echo "chown failed - continuing..." && \
