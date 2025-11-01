@@ -15,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
+        
+        // Trust proxy headers for HTTPS detection (required for Render deployment)
+        // This allows Laravel to detect HTTPS from X-Forwarded-Proto header
+        $middleware->trustProxies(at: '*', headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_ALL);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
