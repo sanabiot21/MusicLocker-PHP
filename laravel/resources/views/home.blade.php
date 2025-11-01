@@ -218,6 +218,85 @@
             margin-bottom: 2rem;
         }
     }
+
+    /* Easter Egg Video Modal */
+    .easter-egg-modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(10px);
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .easter-egg-modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .easter-egg-modal-content {
+        position: relative;
+        max-width: 90%;
+        max-height: 90%;
+        width: auto;
+        height: auto;
+        background: transparent;
+    }
+
+    .easter-egg-modal video {
+        width: 100%;
+        height: auto;
+        max-height: 90vh;
+        border-radius: 10px;
+        box-shadow: 0 0 50px rgba(0, 212, 255, 0.5), 0 0 100px rgba(138, 43, 226, 0.3);
+    }
+
+    .easter-egg-modal-close {
+        position: absolute;
+        top: -40px;
+        right: 0;
+        color: var(--text-light);
+        font-size: 2rem;
+        font-weight: bold;
+        cursor: pointer;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .easter-egg-modal-close:hover {
+        background: rgba(255, 0, 0, 0.7);
+        transform: rotate(90deg);
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* Vinyl click effect */
+    #vinyl-easter-egg {
+        transition: transform 0.2s ease;
+        cursor: pointer;
+    }
+
+    #vinyl-easter-egg:active {
+        transform: scale(0.95);
+    }
     </style>
 @endpush
 
@@ -249,7 +328,7 @@
                 </div>
                 <div class="col-lg-6 text-center">
                     <div class="hero-image">
-                        <div class="vinyl-logo-container">
+                        <div class="vinyl-logo-container" id="vinyl-easter-egg">
                             <img src="{{ asset('images/vinyl-record.svg') }}" alt="Music Locker Vinyl Logo" class="vinyl-logo">
                         </div>
                     </div>
@@ -406,4 +485,68 @@
             </div>
         </div>
     </section>
+
+    <!-- Easter Egg Video Modal -->
+    <div id="easterEggModal" class="easter-egg-modal">
+        <div class="easter-egg-modal-content">
+            <span class="easter-egg-modal-close" id="closeEasterEgg">&times;</span>
+            <video id="easterEggVideo" controls autoplay>
+                <source src="{{ asset('assets/videos/easter-egg.mp4') }}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+    </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const vinyl = document.getElementById('vinyl-easter-egg');
+    const modal = document.getElementById('easterEggModal');
+    const video = document.getElementById('easterEggVideo');
+    const closeBtn = document.getElementById('closeEasterEgg');
+
+    if (vinyl && modal && video) {
+        // Open modal when vinyl is clicked
+        vinyl.addEventListener('click', function(e) {
+            e.preventDefault();
+            modal.classList.add('show');
+            video.currentTime = 0;
+            video.play().catch(function(error) {
+                console.log('Video play failed:', error);
+            });
+        });
+
+        // Close modal when close button is clicked
+        closeBtn.addEventListener('click', function() {
+            video.pause();
+            modal.classList.remove('show');
+        });
+
+        // Close modal when clicking outside the video
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                video.pause();
+                modal.classList.remove('show');
+            }
+        });
+
+        // Close modal when pressing Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && modal.classList.contains('show')) {
+                video.pause();
+                modal.classList.remove('show');
+            }
+        });
+
+        // Reset video when modal is closed
+        modal.addEventListener('transitionend', function() {
+            if (!modal.classList.contains('show')) {
+                video.pause();
+                video.currentTime = 0;
+            }
+        });
+    }
+});
+</script>
+@endpush
