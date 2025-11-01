@@ -28,6 +28,7 @@ class User extends Authenticatable
         'verification_token',
         'reset_token',
         'status',
+        'ban_reason',
         'role',
         'last_login',
     ];
@@ -115,6 +116,14 @@ class User extends Authenticatable
     public function activityLogs(): HasMany
     {
         return $this->hasMany(ActivityLog::class);
+    }
+
+    /**
+     * Get all admin notes for this user
+     */
+    public function adminNotes(): HasMany
+    {
+        return $this->hasMany(AdminNote::class, 'user_id');
     }
 
     // Accessors & Mutators

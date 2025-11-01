@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Music Locker')</title>
+    <style>
+        /* Prevent collapse FOUC before Bootstrap CSS loads */
+        .collapse:not(.show) { display: none; }
+    </style>
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
@@ -18,7 +22,24 @@
     <link href="https://fonts.googleapis.com/css2?family=Kode+Mono:wght@400..700&family=Titillium+Web:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700&display=swap" rel="stylesheet">
 
     <!-- Vite Assets -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @if(file_exists(public_path('hot')))
+        {{-- Vite dev server is running --}}
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @elseif(file_exists(public_path('build/manifest.json')))
+        {{-- Use built assets from manifest --}}
+        @php
+            $manifest = json_decode(file_get_contents(public_path('build/manifest.json')), true);
+        @endphp
+        @if(isset($manifest['resources/css/app.css']['file']))
+            <link rel="stylesheet" href="{{ asset('build/' . $manifest['resources/css/app.css']['file']) }}">
+        @endif
+        @if(isset($manifest['resources/js/app.js']['file']))
+            <script type="module" src="{{ asset('build/' . $manifest['resources/js/app.js']['file']) }}"></script>
+        @endif
+    @else
+        {{-- Fallback: try @vite directive anyway --}}
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @endif
 
     @stack('styles')
 </head>
@@ -319,4 +340,3 @@
     @stack('scripts')
 </body>
 </html>
-

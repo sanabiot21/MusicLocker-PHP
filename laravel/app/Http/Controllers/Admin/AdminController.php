@@ -8,6 +8,7 @@ use App\Models\MusicEntry;
 use App\Models\Playlist;
 use App\Models\Tag;
 use App\Models\ActivityLog;
+use App\Models\AdminNote;
 use App\Models\SystemSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -152,7 +153,7 @@ class AdminController extends Controller
      */
     public function userDetail($id)
     {
-        $user = User::with(['musicEntries', 'playlists', 'tags'])
+        $user = User::with(['musicEntries', 'playlists', 'tags', 'adminNotes.admin'])
             ->withCount(['musicEntries', 'playlists'])
             ->findOrFail($id);
 
@@ -195,6 +196,7 @@ class AdminController extends Controller
             'last_name' => 'required|string|max:100',
             'email' => 'required|email|max:255',
             'status' => 'required|in:active,inactive',
+            'ban_reason' => 'nullable|string|max:1000',
             'role' => 'required|in:user,admin'
         ]);
 
@@ -216,11 +218,15 @@ class AdminController extends Controller
             ], 403);
         }
 
+        // Clear ban_reason if status is being set to active
+        $banReason = $validated['status'] === 'active' ? null : ($validated['ban_reason'] ?? null);
+
         $user->update([
             'first_name' => $validated['first_name'],
             'last_name' => $validated['last_name'],
             'email' => $validated['email'],
             'status' => $validated['status'],
+            'ban_reason' => $banReason,
             'role' => $validated['role']
         ]);
 
@@ -353,6 +359,59 @@ class AdminController extends Controller
         return view('admin.system-health', [
             'dbStats' => $dbStats,
             'serverInfo' => $serverInfo
+        ]);
+    }
+
+    /**
+     * Save Admin Note
+     * Create or update an admin note for a user (AJAX)
+     */
+    public function saveNote(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        $validated = $request->validate([
+            'note' => 'required|string|max:500'
+        ]);
+
+        $adminNote = AdminNote::create([
+            'user_id' => $user->id,
+            'admin_id' => auth()->id(),
+            'note' => $validated['note']
+        ]);
+
+        log_activity('create', 'admin_note', $user->id, "Added note for user: {$user->full_name}");
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Note saved successfully',
+            'note' => [
+                'id' => $adminNote->id,
+                'note' => $adminNote->note,
+                'admin_name' => auth()->user()->full_name,
+                'created_at' => $adminNote->created_at->format('M d, Y H:i')
+            ]
+        ]);
+    }
+
+    /**
+     * Delete Admin Note
+     * Delete an admin note for a user (AJAX)
+     */
+    public function deleteNote($userId, $noteId)
+    {
+        $note = AdminNote::where('id', $noteId)
+            ->where('user_id', $userId)
+            ->firstOrFail();
+
+        $user = User::findOrFail($userId);
+        $note->delete();
+
+        log_activity('delete', 'admin_note', $userId, "Deleted note for user: {$user->full_name}");
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Note deleted successfully'
         ]);
     }
 

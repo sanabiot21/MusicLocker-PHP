@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\AccountRecoveryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,6 +45,11 @@ Route::middleware('guest')->group(function () {
     Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'])->name('password.email');
     Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
     Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.update');
+
+    // Account Recovery (for banned users)
+    Route::get('/account/banned', [AccountRecoveryController::class, 'showBanned'])->name('auth.banned');
+    Route::get('/account/recovery', [AccountRecoveryController::class, 'showRecoveryForm'])->name('auth.account-recovery');
+    Route::post('/account/recovery', [AccountRecoveryController::class, 'submitRecoveryRequest'])->name('auth.account-recovery.submit');
 });
 
 // ============================================
@@ -95,6 +101,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/users/{id}/music', [AdminController::class, 'userMusic'])->name('users.music');
     Route::post('/users/update', [AdminController::class, 'updateUser'])->name('users.update');
     Route::delete('/users/{id}', [AdminController::class, 'deleteUser'])->name('users.delete');
+
+    // Admin Notes
+    Route::post('/users/{id}/notes', [AdminController::class, 'saveNote'])->name('users.notes.save');
+    Route::delete('/users/{id}/notes/{noteId}', [AdminController::class, 'deleteNote'])->name('users.notes.delete');
 
     // Password Reset Approval
     Route::post('/reset-requests/approve', [AdminController::class, 'approveResetRequest'])->name('reset.approve');

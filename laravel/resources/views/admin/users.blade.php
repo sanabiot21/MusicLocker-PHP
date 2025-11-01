@@ -21,7 +21,7 @@
                         <select name="status" class="form-control">
                             <option value="">All Status</option>
                             <option value="active" {{ $status === 'active' ? 'selected' : '' }}>Active</option>
-                            <option value="inactive" {{ $status === 'inactive' ? 'selected' : '' }}>Inactive</option>
+                            <option value="inactive" {{ $status === 'inactive' ? 'selected' : '' }}>Banned</option>
                         </select>
                     </div>
                     <button type="submit" class="btn btn-primary">Filter</button>
@@ -55,8 +55,8 @@
                             <td>{{ $user->full_name }}</td>
                             <td>{{ $user->email }}</td>
                             <td>
-                                <span class="badge badge-{{ $user->status === 'active' ? 'success' : 'secondary' }}">
-                                    {{ ucfirst($user->status) }}
+                                <span class="badge badge-{{ $user->status === 'active' ? 'success' : 'danger' }}">
+                                    {{ $user->status === 'active' ? 'Active' : 'Banned' }}
                                 </span>
                             </td>
                             <td>

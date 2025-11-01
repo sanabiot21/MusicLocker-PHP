@@ -159,8 +159,16 @@ document.addEventListener('DOMContentLoaded', function () {
    */
   document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
     anchor.addEventListener('click', function (e) {
+      const href = this.getAttribute('href');
+      // Skip empty hashes, just "#", or Bootstrap components (dropdowns, modals, etc.)
+      if (!href || href === '#' || href.length <= 1 ||
+          this.hasAttribute('data-bs-toggle') ||
+          this.hasAttribute('data-toggle') ||
+          this.classList.contains('dropdown-toggle')) {
+        return;
+      }
       e.preventDefault();
-      const target = document.querySelector(this.getAttribute('href'));
+      const target = document.querySelector(href);
       if (target) {
         target.scrollIntoView({
           behavior: 'smooth',

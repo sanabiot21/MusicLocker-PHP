@@ -25,6 +25,14 @@
 
         <!-- Filters -->
         <div class="feature-card mb-4">
+            @php
+                $activeFiltersCount = 0;
+                if (!empty(request('genre'))) $activeFiltersCount++;
+                if (!empty(request('tag_id'))) $activeFiltersCount++;
+                if (!empty(request('mood'))) $activeFiltersCount++;
+                if (!empty(request('rating'))) $activeFiltersCount++;
+                if (!empty(request('sort_by')) && request('sort_by') !== 'created_at') $activeFiltersCount++;
+            @endphp
             <form method="GET" action="{{ route('music.index') }}" id="musicFilterForm">
                 <!-- Primary Search Row -->
                 <div class="row g-2 mb-3">
@@ -40,16 +48,14 @@
                     </div>
                     <div class="col-md-4 col-lg-3">
                         <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-outline-glow flex-grow-1" id="toggleAdvancedFilters">
+                            <button
+                                type="button"
+                                class="btn btn-outline-glow flex-grow-1"
+                                id="toggleAdvancedFilters"
+                                aria-controls="advancedFilters"
+                                aria-expanded="{{ $activeFiltersCount > 0 ? 'true' : 'false' }}"
+                            >
                                 <i class="bi bi-funnel me-1"></i>Filters
-                                @php
-                                $activeFiltersCount = 0;
-                                if (!empty(request('genre'))) $activeFiltersCount++;
-                                if (!empty(request('tag_id'))) $activeFiltersCount++;
-                                if (!empty(request('mood'))) $activeFiltersCount++;
-                                if (!empty(request('rating'))) $activeFiltersCount++;
-                                if (!empty(request('sort_by')) && request('sort_by') !== 'created_at') $activeFiltersCount++;
-                                @endphp
                                 @if($activeFiltersCount > 0)
                                     <span class="badge bg-glow">{{ $activeFiltersCount }}</span>
                                 @endif
@@ -62,7 +68,11 @@
                 </div>
                 
                 <!-- Advanced Filters (Collapsible) -->
-                <div id="advancedFilters" class="{{ $activeFiltersCount > 0 ? '' : 'collapse' }}">
+                <div
+                    id="advancedFilters"
+                    class="{{ $activeFiltersCount > 0 ? '' : 'd-none' }}"
+                    style="overflow: hidden; transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;"
+                >
                     <div class="row g-2 mb-3 pb-3 border-bottom border-secondary">
                         <div class="col-md-3">
                             <label class="form-label small text-muted mb-1">Genre</label>
@@ -295,26 +305,102 @@
 <script src="{{ asset('js/music.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Toggle advanced filters
+    // Advanced Filters: Smooth animation with direct DOM control
     const toggleBtn = document.getElementById('toggleAdvancedFilters');
     const advancedFilters = document.getElementById('advancedFilters');
-    
     if (toggleBtn && advancedFilters) {
-        toggleBtn.addEventListener('click', function() {
-            const bsCollapse = new bootstrap.Collapse(advancedFilters, {
-                toggle: true
-            });
+        const icon = toggleBtn.querySelector('i');
+        const setIcon = (expanded) => {
+            if (!icon) return;
+            icon.classList.toggle('bi-funnel', !expanded);
+            icon.classList.toggle('bi-funnel-fill', expanded);
+        };
+        
+        // Check initial state
+        const isInitiallyExpanded = !advancedFilters.classList.contains('d-none');
+        
+        // Initialize icon
+        setIcon(isInitiallyExpanded);
+        
+        // Set initial aria-expanded
+        toggleBtn.setAttribute('aria-expanded', isInitiallyExpanded ? 'true' : 'false');
+        
+        // Set initial styles for animation
+        if (isInitiallyExpanded) {
+            advancedFilters.style.maxHeight = 'none';
+            advancedFilters.style.opacity = '1';
+            advancedFilters.style.display = 'block';
+        } else {
+            advancedFilters.style.maxHeight = '0';
+            advancedFilters.style.opacity = '0';
+            advancedFilters.style.display = 'block'; // Keep display block for animation
+        }
+        
+        // Smooth toggle with animation
+        toggleBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             
-            // Toggle icon
-            const icon = this.querySelector('i');
-            advancedFilters.addEventListener('shown.bs.collapse', function() {
-                icon.classList.remove('bi-funnel');
-                icon.classList.add('bi-funnel-fill');
-            });
-            advancedFilters.addEventListener('hidden.bs.collapse', function() {
-                icon.classList.remove('bi-funnel-fill');
-                icon.classList.add('bi-funnel');
-            });
+            const isCurrentlyHidden = advancedFilters.classList.contains('d-none') || 
+                                      advancedFilters.style.maxHeight === '0' ||
+                                      advancedFilters.style.opacity === '0';
+            
+            if (isCurrentlyHidden) {
+                // Show with animation
+                advancedFilters.classList.remove('d-none');
+                advancedFilters.style.display = 'block';
+                advancedFilters.style.visibility = 'visible';
+                advancedFilters.style.overflow = 'visible';
+                
+                // Force reflow to ensure display is set
+                advancedFilters.offsetHeight;
+                
+                // Get actual height for smooth animation
+                const scrollHeight = advancedFilters.scrollHeight;
+                
+                // Set initial state for animation
+                advancedFilters.style.maxHeight = '0';
+                advancedFilters.style.opacity = '0';
+                
+                // Trigger animation
+                requestAnimationFrame(() => {
+                    advancedFilters.style.maxHeight = scrollHeight + 'px';
+                    advancedFilters.style.opacity = '1';
+                });
+                
+                // Clean up after animation completes
+                setTimeout(() => {
+                    advancedFilters.style.maxHeight = 'none';
+                    advancedFilters.style.overflow = '';
+                }, 350);
+                
+                toggleBtn.setAttribute('aria-expanded', 'true');
+                setIcon(true);
+            } else {
+                // Hide with animation
+                const scrollHeight = advancedFilters.scrollHeight;
+                advancedFilters.style.maxHeight = scrollHeight + 'px';
+                advancedFilters.style.opacity = '1';
+                
+                // Force reflow
+                advancedFilters.offsetHeight;
+                
+                // Trigger animation
+                requestAnimationFrame(() => {
+                    advancedFilters.style.maxHeight = '0';
+                    advancedFilters.style.opacity = '0';
+                });
+                
+                // Hide after animation
+                setTimeout(() => {
+                    advancedFilters.classList.add('d-none');
+                    advancedFilters.style.display = 'none';
+                    advancedFilters.style.maxHeight = '0';
+                }, 350);
+                
+                toggleBtn.setAttribute('aria-expanded', 'false');
+                setIcon(false);
+            }
         });
     }
     
