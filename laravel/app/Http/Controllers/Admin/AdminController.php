@@ -121,6 +121,14 @@ class AdminController extends Controller
         $search = $request->get('search', '');
         $status = $request->get('status', '');
 
+        // Get user statistics
+        $stats = [
+            'total_users' => User::count(),
+            'active_users' => User::where('status', 'active')->count(),
+            'inactive_users' => User::where('status', 'inactive')->count(),
+            'total_songs' => MusicEntry::count(),
+        ];
+
         $query = User::with(['musicEntries'])
             ->withCount('musicEntries');
 
@@ -143,7 +151,8 @@ class AdminController extends Controller
         return view('admin.users', [
             'users' => $users,
             'search' => $search,
-            'status' => $status
+            'status' => $status,
+            'stats' => $stats
         ]);
     }
 

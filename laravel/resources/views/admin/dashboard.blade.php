@@ -35,44 +35,44 @@
     <div class="row g-4 mb-4">
         <!-- Total Users -->
         <div class="col-lg-3 col-md-6">
-            <div class="feature-card text-center">
+            <div class="feature-card stat-card-colored stat-card-blue">
                 <div class="mb-3">
                     <i class="bi bi-people display-4" style="color: var(--accent-blue);"></i>
                 </div>
-                <h2 class="stat-number text-primary mb-1">{{ formatNumber($userStats['total_users']) }}</h2>
+                <h2 class="stat-value stat-value-blue mb-1">{{ formatNumber($userStats['total_users']) }}</h2>
                 <p class="stat-label mb-0">Total Users</p>
             </div>
         </div>
 
         <!-- Active Users -->
         <div class="col-lg-3 col-md-6">
-            <div class="feature-card text-center">
+            <div class="feature-card stat-card-colored stat-card-green">
                 <div class="mb-3">
                     <i class="bi bi-person-check display-4" style="color: #28a745;"></i>
                 </div>
-                <h2 class="stat-number text-success mb-1">{{ formatNumber($userStats['active_users']) }}</h2>
+                <h2 class="stat-value stat-value-green mb-1">{{ formatNumber($userStats['active_users']) }}</h2>
                 <p class="stat-label mb-0">Active Users</p>
             </div>
         </div>
 
         <!-- New Users Today -->
         <div class="col-lg-3 col-md-6">
-            <div class="feature-card text-center">
+            <div class="feature-card stat-card-colored stat-card-purple">
                 <div class="mb-3">
                     <i class="bi bi-person-plus display-4" style="color: var(--accent-purple);"></i>
                 </div>
-                <h2 class="stat-number" style="color: var(--accent-purple);">{{ formatNumber($userStats['new_users_today']) }}</h2>
+                <h2 class="stat-value stat-value-purple mb-1">{{ formatNumber($userStats['new_users_today']) }}</h2>
                 <p class="stat-label mb-0">New Today</p>
             </div>
         </div>
 
         <!-- Music Entries -->
         <div class="col-lg-3 col-md-6">
-            <div class="feature-card text-center">
+            <div class="feature-card stat-card-colored stat-card-yellow">
                 <div class="mb-3">
-                    <i class="bi bi-music-note-list display-4" style="color: #ffc107;"></i>
+                    <i class="bi bi-music-note-list display-4" style="color: #feca57;"></i>
                 </div>
-                <h2 class="stat-number text-warning mb-1">{{ formatNumber($userStats['total_music_entries']) }}</h2>
+                <h2 class="stat-value stat-value-yellow mb-1">{{ formatNumber($userStats['total_music_entries']) }}</h2>
                 <p class="stat-label mb-0">Music Entries</p>
             </div>
         </div>
@@ -201,28 +201,26 @@
         </div>
 
         @if($recentActivity->count() > 0)
-            <div class="activity-list-admin">
+            <div class="activity-timeline-enhanced">
                 @foreach($recentActivity as $activity)
-                <div class="activity-item-admin border-bottom pb-3 mb-3">
-                    <div class="d-flex">
-                        <div class="activity-icon-admin me-3">
-                            <span class="badge rounded-pill bg-{{ $activity->icon_color }}">
-                                <i class="bi {{ $activity->icon_class }}"></i>
-                            </span>
-                        </div>
-                        <div class="flex-grow-1">
-                            <div class="activity-description-admin">
+                <div class="activity-item-enhanced">
+                    <div class="activity-icon-enhanced">
+                        <i class="bi {{ $activity->icon_class }}" style="color: var(--accent-{{ $activity->icon_color === 'success' ? 'blue' : ($activity->icon_color === 'danger' ? 'purple' : 'blue') }});"></i>
+                    </div>
+                    <div class="activity-content-enhanced">
+                        <div class="activity-header-enhanced">
+                            <div class="activity-description-enhanced">
                                 {{ $activity->description }}
                             </div>
-                            <div class="activity-meta-admin text-muted small mt-1">
-                                @if($activity->user)
-                                    <i class="bi bi-person me-1"></i>
-                                    <span class="activity-user">{{ $activity->user->full_name }}</span>
-                                @endif
+                        </div>
+                        <div class="activity-meta-admin text-muted small">
+                            @if($activity->user)
+                                <i class="bi bi-person me-1"></i>
+                                <span class="activity-user">{{ $activity->user->full_name }}</span>
                                 <span class="mx-2">•</span>
-                                <i class="bi bi-clock me-1"></i>
-                                <span class="activity-time">{{ $activity->created_at->diffForHumans() }}</span>
-                            </div>
+                            @endif
+                            <i class="bi bi-clock me-1"></i>
+                            <span class="activity-time">{{ $activity->created_at->diffForHumans() }}</span>
                         </div>
                     </div>
                 </div>

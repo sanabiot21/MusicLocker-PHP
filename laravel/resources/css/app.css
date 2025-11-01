@@ -1179,6 +1179,477 @@ html {
   min-height: 80px;
 }
 
+/* Enhanced Admin Components - Inspired by Custom PHP */
+
+/* Colored Stat Cards */
+.stat-card-colored {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.stat-card-colored:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.stat-card-blue {
+  background: rgba(0, 212, 255, 0.1);
+}
+
+.stat-card-purple {
+  background: rgba(138, 43, 226, 0.1);
+}
+
+.stat-card-yellow {
+  background: rgba(254, 202, 87, 0.1);
+}
+
+.stat-card-teal {
+  background: rgba(78, 205, 196, 0.1);
+}
+
+.stat-card-green {
+  background: rgba(40, 167, 69, 0.1);
+}
+
+/* User Avatar Icons */
+.user-avatar-icon {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 212, 255, 0.2);
+  color: var(--accent-blue);
+  border-radius: 50%;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.user-avatar-large {
+  width: 80px;
+  height: 80px;
+  font-size: 2.5rem;
+}
+
+/* Enhanced Table Styling */
+.admin-table-enhanced {
+  width: 100%;
+  color: var(--text-light);
+}
+
+.admin-table-enhanced thead {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.admin-table-enhanced th {
+  color: var(--text-light);
+  font-weight: 600;
+  padding: 0.75rem;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.admin-table-enhanced td {
+  padding: 0.75rem;
+  border-color: rgba(255, 255, 255, 0.1);
+  vertical-align: middle;
+}
+
+.admin-table-enhanced tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.admin-table-enhanced tbody tr:hover {
+  background-color: rgba(0, 212, 255, 0.05);
+}
+
+/* Status Badges with Icons */
+.badge-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.65rem;
+}
+
+.badge-with-icon i {
+  font-size: 0.9rem;
+}
+
+/* Song Count Badge */
+.badge-songs {
+  background: rgba(138, 43, 226, 0.2);
+  color: var(--accent-purple);
+  border: 1px solid rgba(138, 43, 226, 0.4);
+}
+
+/* Activity Timeline Enhanced */
+.activity-timeline-enhanced {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.activity-item-enhanced {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border-left: 3px solid var(--accent-blue);
+  transition: all 0.3s ease;
+}
+
+.activity-item-enhanced:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateX(5px);
+}
+
+.activity-icon-enhanced {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  flex-shrink: 0;
+  font-size: 1.2rem;
+}
+
+.activity-content-enhanced {
+  flex-grow: 1;
+}
+
+.activity-header-enhanced {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.activity-description-enhanced {
+  color: var(--text-gray);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Info Display Groups */
+.info-display-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.info-display-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.info-display-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-gray);
+}
+
+.info-display-value {
+  font-weight: 500;
+  color: var(--text-light);
+}
+
+/* Test Sections (System Health) */
+.test-section {
+  background: rgba(26, 26, 26, 0.8);
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  height: 100%;
+}
+
+.test-section h5 {
+  margin-bottom: 1rem;
+  color: var(--accent-blue);
+  font-size: 1.1rem;
+}
+
+.test-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.test-item:last-child {
+  border-bottom: none;
+}
+
+.test-label {
+  color: var(--text-gray);
+  font-size: 0.9rem;
+}
+
+.test-result {
+  font-weight: bold;
+  text-align: right;
+  min-width: 120px;
+  font-size: 0.9rem;
+}
+
+.status-success {
+  color: #28a745;
+}
+
+.status-error {
+  color: #dc3545;
+}
+
+.status-warning {
+  color: #ffc107;
+}
+
+.status-info {
+  color: #17a2b8;
+}
+
+/* Settings Category Sections */
+.settings-category {
+  margin-bottom: 2rem;
+}
+
+.settings-category-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid rgba(0, 212, 255, 0.2);
+}
+
+.settings-category-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.settings-category-icon.icon-blue {
+  background: rgba(0, 212, 255, 0.1);
+  color: var(--accent-blue);
+}
+
+.settings-category-icon.icon-purple {
+  background: rgba(138, 43, 226, 0.1);
+  color: var(--accent-purple);
+}
+
+.settings-category-icon.icon-yellow {
+  background: rgba(254, 202, 87, 0.1);
+  color: #feca57;
+}
+
+.settings-category-icon.icon-green {
+  background: rgba(40, 167, 69, 0.1);
+  color: #28a745;
+}
+
+.settings-category-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--text-light);
+  margin: 0;
+}
+
+.setting-item {
+  margin-bottom: 1.5rem;
+}
+
+.setting-description {
+  font-size: 0.85rem;
+  color: var(--text-gray);
+  margin-top: 0.25rem;
+  line-height: 1.4;
+}
+
+/* Enhanced Button Groups */
+.btn-group-admin {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-group-admin .btn {
+  min-width: 100px;
+}
+
+/* Pagination Dark Theme */
+.pagination-dark .page-link {
+  background-color: #2a2a2a;
+  border-color: #444;
+  color: var(--text-light);
+}
+
+.pagination-dark .page-link:hover {
+  background-color: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: var(--primary-dark);
+}
+
+.pagination-dark .page-item.active .page-link {
+  background-color: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: var(--primary-dark);
+}
+
+/* Page Header Styling */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-light);
+}
+
+.page-description {
+  color: var(--text-gray);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* Admin Grid Layout */
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Stat Display with Monospace Numbers */
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  font-family: 'Kode Mono', 'Courier New', monospace;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+  color: var(--text-light);
+}
+
+.stat-value-blue {
+  color: var(--accent-blue);
+}
+
+.stat-value-purple {
+  color: var(--accent-purple);
+}
+
+.stat-value-yellow {
+  color: #feca57;
+}
+
+.stat-value-green {
+  color: #28a745;
+}
+
+.stats-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+/* Enhanced Modal Styling */
+.modal-content-dark {
+  background: var(--card-bg);
+  border: 1px solid #333;
+  border-radius: 15px;
+}
+
+.modal-header-dark {
+  border-bottom: 1px solid #333;
+}
+
+.modal-footer-dark {
+  border-top: 1px solid #333;
+}
+
+/* Action Button Layout */
+.action-buttons {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.action-buttons .btn {
+  min-width: 120px;
+}
+
+/* Divider Line */
+.divider {
+  border-top: 1px solid #333;
+  margin: 1.5rem 0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .activity-item-enhanced {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .activity-header-enhanced {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .action-buttons .btn {
+    width: 100%;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .user-avatar-large {
+    width: 60px;
+    height: 60px;
+    font-size: 2rem;
+  }
+}
+
 /* Accessibility Improvements */
 .btn:focus,
 .form-control:focus,

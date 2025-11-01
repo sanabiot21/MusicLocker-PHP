@@ -26,16 +26,16 @@ composer install --no-dev --optimize-autoloader
 echo "🔑 Generating application key..."
 php artisan key:generate --force
 
-# Clear all caches
-echo "🧹 Clearing caches..."
-php artisan config:clear
-php artisan cache:clear
-php artisan view:clear
-php artisan route:clear
-
-# Run migrations
+# Run migrations FIRST (before cache operations that might need the cache table)
 echo "🗄️ Running database migrations..."
 php artisan migrate --force
+
+# Clear all caches (skip if using database cache and table doesn't exist)
+echo "🧹 Clearing caches..."
+php artisan config:clear || echo "Config clear failed - continuing..."
+php artisan cache:clear || echo "Cache clear failed - continuing..."
+php artisan view:clear || echo "View clear failed - continuing..."
+php artisan route:clear || echo "Route clear failed - continuing..."
 
 # Create storage link
 echo "🔗 Creating storage link..."
