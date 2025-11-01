@@ -18,8 +18,16 @@ return Application::configure(basePath: dirname(__DIR__))
         
         // Trust proxy headers for HTTPS detection (required for Render deployment)
         // This allows Laravel to detect HTTPS from X-Forwarded-Proto header
-        $middleware->trustProxies(at: '*', headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_ALL);
+        $middleware->trustProxies(
+            at: '*',
+            headers:
+                \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_FOR
+                | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_HOST
+                | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PORT
+                | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PROTO,
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
+
