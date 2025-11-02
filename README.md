@@ -747,10 +747,26 @@ APP_ENV=production
 APP_DEBUG=false
 APP_TIMEZONE=Asia/Manila
 LOG_LEVEL=error
+
+# Database Configuration (Supabase Transaction Pooler)
 DB_CONNECTION=pgsql
 DB_HOST=aws-1-ap-southeast-1.pooler.supabase.com
+DB_PORT=6543
+DB_DATABASE=postgres
+DB_USERNAME=postgres
+DB_PASSWORD=your_supabase_password
 DB_SSLMODE=require
+
+# Optional: Connection timeout and retry settings
+DB_TIMEOUT=10
+DB_RETRY_AFTER=5
+DB_PERSISTENT=false
 ```
+
+**Important:** 
+- `DB_PORT=6543` is required for Supabase's transaction pooler (IPv4 compatible)
+- `DB_HOST` must point to the pooler endpoint (ends with `.pooler.supabase.com`)
+- Direct connection (port 5432) requires IPv4 support which Render doesn't provide by default
 
 ### Docker Configuration
 
@@ -876,6 +892,110 @@ docker exec -it music-locker php -v
 - Database: SSL required (`DB_SSLMODE=require`)
 - Secrets: Never commit `.env` files to Git
 - File permissions: Nginx runs as non-root user
+
+### Supabase Network Configuration & Troubleshooting
+
+#### Understanding IP Whitelisting
+
+Supabase uses **IP whitelisting** (also called "IP allowlisting" or "network restrictions") to control which IP addresses can connect to your database. This is a security feature that prevents unauthorized access.
+
+**What is IP Whitelisting?**
+- A list of allowed IP addresses/IP ranges that can connect to your Supabase database
+- By default, Supabase may restrict connections to specific IPs
+- Render's infrastructure uses dynamic IP addresses that need to be whitelisted
+
+#### Configuring Supabase Network Settings
+
+1. **Access Supabase Dashboard:**
+   - Go to your Supabase project dashboard
+   - Navigate to **Settings** → **Database** → **Connection Pooling** or **Network**
+
+2. **Enable Connection Pooler:**
+   - Ensure transaction pooler is enabled (port 6543)
+   - Copy the pooler connection string (should end with `.pooler.supabase.com`)
+
+3. **Configure Network Restrictions:**
+   - **Option A: Allow All IPs (Development/Testing)**
+     - Set network restrictions to allow connections from anywhere (`0.0.0.0/0`)
+     - ⚠️ **Warning:** Less secure, only for development/testing
+   
+   - **Option B: Whitelist Render IPs (Production)**
+     - Render uses dynamic IPs, so you may need to allow all IPs or use Supabase's allowed IPs feature
+     - Check Render's documentation for current IP ranges
+     - Add those IP ranges to Supabase's network allowlist
+
+4. **Verify Connection String:**
+   - Use the **Transaction Pooler** connection string (port 6543)
+   - Format: `aws-{region}-{instance}.pooler.supabase.com:6543`
+   - Example: `aws-1-ap-southeast-1.pooler.supabase.com:6543`
+
+#### Troubleshooting Connection Issues
+
+**Error: "Connection refused" or "SQLSTATE[08006]"**
+
+1. **Verify Environment Variables:**
+   ```bash
+   # Check these are set correctly in Render dashboard:
+   DB_CONNECTION=pgsql
+   DB_HOST=aws-1-ap-southeast-1.pooler.supabase.com  # Must end with .pooler.supabase.com
+   DB_PORT=6543  # Required for transaction pooler
+   DB_SSLMODE=require
+   ```
+
+2. **Test Connection Locally:**
+   ```bash
+   cd laravel
+   php scripts/test-db-connection.php
+   ```
+   This script tests the connection independently of Laravel.
+
+3. **Check Supabase Project Status:**
+   - Ensure your Supabase project is active (not paused)
+   - Verify database is running in Supabase dashboard
+   - Check project logs for connection attempts
+
+4. **Verify Network Settings:**
+   - In Supabase dashboard, check if there are IP restrictions
+   - If restrictions exist, temporarily allow all IPs to test (`0.0.0.0/0`)
+   - Once connection works, you can tighten restrictions
+
+5. **Check Connection Pooler:**
+   - Ensure transaction pooler is enabled in Supabase
+   - Verify you're using the pooler endpoint, not direct connection
+   - Direct connection (port 5432) requires IPv4 support which Render doesn't provide
+
+6. **Review Deployment Logs:**
+   - Check Render deployment logs for detailed error messages
+   - The startup script now includes retry logic with exponential backoff
+   - Look for connection attempt messages and specific error codes
+
+**Error: "timeout expired"**
+
+- Increase `DB_TIMEOUT` environment variable (default: 10 seconds)
+- Check Supabase project isn't paused or experiencing issues
+- Verify network connectivity between Render and Supabase
+
+**Common Mistakes:**
+
+- ❌ Using direct connection (port 5432) instead of pooler (port 6543)
+- ❌ Missing `DB_PORT=6543` environment variable
+- ❌ Using wrong host (direct connection host instead of pooler host)
+- ❌ Setting `DB_SSLMODE=disable` (Supabase requires SSL)
+- ❌ Not whitelisting Render's IP addresses in Supabase
+
+**Connection Test Script:**
+
+Use the provided test script to diagnose issues:
+```bash
+cd laravel
+php scripts/test-db-connection.php
+```
+
+This script will:
+- Display current database configuration
+- Attempt a direct PDO connection
+- Test a simple query
+- Provide specific error messages and troubleshooting steps
 
 ## Development
 
