@@ -98,11 +98,17 @@ echo "Optimizing Laravel for production..."
 
 # Ensure storage directories exist
 echo "Creating storage directories..."
+mkdir -p /var/www/storage/app/public
 mkdir -p /var/www/storage/framework/views
-mkdir -p /var/www/storage/framework/cache
+mkdir -p /var/www/storage/framework/cache/data
 mkdir -p /var/www/storage/framework/sessions
 mkdir -p /var/www/storage/logs
 mkdir -p /var/www/bootstrap/cache
+
+# Set proper permissions BEFORE clearing cache
+echo "Setting file permissions..."
+chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
 # Clear caches first
 php artisan config:clear || echo "Config clear failed - continuing..."
@@ -120,11 +126,6 @@ if [ ! -L /var/www/public/storage ]; then
     echo "Creating storage link..."
     php artisan storage:link
 fi
-
-# Set proper permissions
-echo "Setting file permissions..."
-chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
-chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
 echo "Starting services..."
 
