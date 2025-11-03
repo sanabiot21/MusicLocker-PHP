@@ -33,7 +33,7 @@ $port = getenv('DB_PORT') ?: '5432';
 $database = getenv('DB_DATABASE') ?: 'laravel';
 $username = getenv('DB_USERNAME') ?: 'postgres';
 $password = getenv('DB_PASSWORD') ?: '';
-$sslmode = getenv('DB_SSLMODE') ?: 'prefer';
+$sslmode = getenv('DB_SSLMODE') ?: 'require';
 
 echo "=== Database Connection Test ===\n";
 echo "Host: $host\n";
@@ -96,4 +96,5 @@ try {
     
     exit(1);
 }
+
 

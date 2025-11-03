@@ -95,11 +95,13 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
-            'sslmode' => env('DB_SSLMODE', 'prefer'),
+            'sslmode' => env('DB_SSLMODE', 'require'),
             'options' => extension_loaded('pdo_pgsql') ? array_filter([
                 PDO::ATTR_TIMEOUT => env('DB_TIMEOUT', 10),
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_PERSISTENT => env('DB_PERSISTENT', false),
+                // Force SSL for Supabase
+                PDO::ATTR_EMULATE_PREPARES => false,
             ]) : [],
             'retry_after' => env('DB_RETRY_AFTER', 5),
         ],
