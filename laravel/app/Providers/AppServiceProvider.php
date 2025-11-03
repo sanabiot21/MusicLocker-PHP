@@ -22,12 +22,33 @@ class AppServiceProvider extends ServiceProvider
     {
         // Force HTTPS URLs for assets when deployed behind a proxy (e.g., Render)
         // This ensures asset() helper generates HTTPS URLs, fixing mixed content errors
-        // Check if request is secure via proxy headers or if in production
-        if ($this->app->environment('production') 
-            || request()->header('X-Forwarded-Proto') === 'https' 
-            || request()->header('X-Forwarded-Ssl') === 'on'
-            || request()->secure()) {
-            URL::forceScheme('https');
+        // Only force HTTPS if:
+        // 1. We're in a web context (not CLI), AND
+        // 2. The request is already HTTPS (via proxy headers or direct connection)
+        // This prevents redirect loops by not forcing HTTPS when the request is HTTP
+        if ($this->app->runningInConsole()) {
+            return;
+        }
+
+        try {
+            $request = request();
+            if (!$request) {
+                return;
+            }
+
+            // Check if behind a proxy (like Render) with X-Forwarded-Proto header
+            if ($request->hasHeader('X-Forwarded-Proto')) {
+                // Only force HTTPS if the proxy indicates the original request was HTTPS
+                if ($request->header('X-Forwarded-Proto') === 'https') {
+                    URL::forceScheme('https');
+                }
+            } elseif ($request->secure()) {
+                // Direct HTTPS connection (not behind proxy)
+                URL::forceScheme('https');
+            }
+        } catch (\Exception $e) {
+            // Silently fail if request context is not available
+            // This can happen during application bootstrapping
         }
     }
 }
