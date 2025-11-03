@@ -749,6 +749,7 @@ APP_TIMEZONE=Asia/Manila
 LOG_LEVEL=error
 
 # Database Configuration (Supabase Session Pooler)
+# Option 1: Use individual variables (recommended)
 DB_CONNECTION=pgsql
 DB_HOST=aws-1-ap-southeast-1.pooler.supabase.com
 DB_PORT=5432
@@ -756,6 +757,9 @@ DB_DATABASE=postgres
 DB_USERNAME=postgres.[PROJECT_REF]
 DB_PASSWORD=your_supabase_password
 DB_SSLMODE=require
+
+# Option 2: Use full connection URL (alternative if Option 1 fails)
+# DB_URL=postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require
 
 # Optional: Connection timeout and retry settings
 DB_TIMEOUT=10
@@ -768,6 +772,13 @@ DB_PERSISTENT=false
 - `DB_HOST` must point to the pooler endpoint (ends with `.pooler.supabase.com`)
 - `DB_USERNAME` should include project reference: `postgres.[PROJECT_REF]`
 - Session pooler is recommended for Laravel as it supports prepared statements (Transaction pooler on port 6543 does not)
+
+**Troubleshooting Connection Refused Errors:**
+1. **Verify Session Pooler is Enabled:** In Supabase Dashboard → Settings → Database → Connection Pooling, ensure "Session mode" is enabled
+2. **Check Project Status:** Ensure your Supabase project is Active (not Paused)
+3. **Network Settings:** Verify "Allow connections from any IP" is enabled in Supabase Dashboard → Settings → Database
+4. **Try DB_URL Format:** If individual variables fail, use the `DB_URL` format from Supabase's connection string panel
+5. **Verify Credentials:** Ensure password has no quotes in Render's environment variables
 
 ### Docker Configuration
 
