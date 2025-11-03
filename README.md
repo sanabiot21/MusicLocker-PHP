@@ -748,12 +748,12 @@ APP_DEBUG=false
 APP_TIMEZONE=Asia/Manila
 LOG_LEVEL=error
 
-# Database Configuration (Supabase Transaction Pooler)
+# Database Configuration (Supabase Session Pooler)
 DB_CONNECTION=pgsql
 DB_HOST=aws-1-ap-southeast-1.pooler.supabase.com
-DB_PORT=6543
+DB_PORT=5432
 DB_DATABASE=postgres
-DB_USERNAME=postgres
+DB_USERNAME=postgres.[PROJECT_REF]
 DB_PASSWORD=your_supabase_password
 DB_SSLMODE=require
 
@@ -764,9 +764,10 @@ DB_PERSISTENT=false
 ```
 
 **Important:** 
-- `DB_PORT=6543` is required for Supabase's transaction pooler (IPv4 compatible)
+- `DB_PORT=5432` is required for Supabase's session pooler (IPv4 compatible, supports prepared statements)
 - `DB_HOST` must point to the pooler endpoint (ends with `.pooler.supabase.com`)
-- Direct connection (port 5432) requires IPv4 support which Render doesn't provide by default
+- `DB_USERNAME` should include project reference: `postgres.[PROJECT_REF]`
+- Session pooler is recommended for Laravel as it supports prepared statements (Transaction pooler on port 6543 does not)
 
 ### Docker Configuration
 

@@ -42,8 +42,8 @@ test_db_connection() {
     echo "✗ Failed to connect to database after $max_attempts attempts"
     echo "Please check:"
     echo "  1. Supabase project is active and running"
-    echo "  2. DB_HOST points to transaction pooler (ends with .pooler.supabase.com)"
-    echo "  3. DB_PORT is set to 6543 for transaction pooler"
+    echo "  2. DB_HOST points to session pooler (ends with .pooler.supabase.com)"
+    echo "  3. DB_PORT is set to 5432 for session pooler"
     echo "  4. DB_SSLMODE is set to 'require'"
     echo "  5. Supabase network settings allow connections from Render (IP whitelisting)"
     return 1
