@@ -28,52 +28,6 @@ return Application::configure(basePath: dirname(__DIR__))
         );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // Handle database connection errors gracefully
-        $exceptions->render(function (\Illuminate\Database\QueryException $e, $request) {
-            // Check if it's a connection error
-            if (str_contains($e->getMessage(), 'Connection refused') || 
-                str_contains($e->getMessage(), 'could not connect') ||
-                str_contains($e->getMessage(), 'server closed the connection') ||
-                str_contains($e->getMessage(), 'SQLSTATE[08006]')) {
-                
-                // Log the error
-                \Log::error('Database connection error: ' . $e->getMessage());
-                
-                // Try to reconnect
-                try {
-                    \DB::reconnect();
-                    
-                    // For API requests, return JSON
-                    if ($request->expectsJson() || $request->is('api/*')) {
-                        return response()->json([
-                            'error' => 'Database connection issue. Please try again.',
-                            'retry' => true
-                        ], 503);
-                    }
-                    
-                    // For web requests, redirect back with error
-                    if ($request->isMethod('GET')) {
-                        return redirect()->back()->withErrors(['error' => 'Connection issue. Please try again.']);
-                    }
-                    
-                    // For POST requests, redirect back
-                    return redirect()->back()->withInput()->withErrors(['error' => 'Connection issue. Please try again.']);
-                } catch (\Exception $reconnectError) {
-                    \Log::error('Database reconnection failed: ' . $reconnectError->getMessage());
-                    
-                    // For API requests
-                    if ($request->expectsJson() || $request->is('api/*')) {
-                        return response()->json([
-                            'error' => 'Database connection error. Please try again in a moment.'
-                        ], 503);
-                    }
-                    
-                    // For web requests
-                    return response()->view('errors.500', [
-                        'message' => 'Database connection error. Please try again in a moment.'
-                    ], 503);
-                }
-            }
-        });
+        //
     })->create();
 

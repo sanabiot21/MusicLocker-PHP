@@ -16,11 +16,28 @@
                         <p class="text-muted">Enter your new password below</p>
                     </div>
 
-                    <form id="resetForm" method="POST" action="{{ route('password.reset') }}" novalidate>
+                    <form id="resetForm" method="POST" action="{{ route('password.update') }}" novalidate>
                         @csrf
-                        <input type="hidden" name="token" value="{{ $reset_token }}">
+                        <input type="hidden" name="token" value="{{ $token }}">
 
                         <!-- Display validation errors -->
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label for="email" class="form-label form-label-dark">
+                                <i class="bi bi-envelope me-1"></i>Email Address
+                            </label>
+                            <input type="email"
+                                   class="form-control form-control-dark @error('email') is-invalid @enderror"
+                                   id="email" name="email"
+                                   value="{{ old('email', $email ?? '') }}"
+                                   placeholder="Enter your email address" required>
+                            @error('email')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
 
                         <!-- New Password -->
                         <div class="mb-3">
@@ -105,10 +122,10 @@
                     <div class="text-center mt-4 pt-4 border-top" style="border-color: #333 !important;">
                         <div class="text-muted small">
                             <p class="mb-2"><strong>Password Security Tips:</strong></p>
-                            <p class="mb-1">• Use at least 8 characters with mixed case letters</p>
-                            <p class="mb-1">• Include numbers and special characters</p>
-                            <p class="mb-1">• Avoid using personal information</p>
-                            <p class="mb-3">• Don't reuse passwords from other sites</p>
+                            <p class="mb-1">- Use at least 8 characters with mixed case letters</p>
+                            <p class="mb-1">- Include numbers and special characters</p>
+                            <p class="mb-1">- Avoid using personal information</p>
+                            <p class="mb-3">- Don't reuse passwords from other sites</p>
                         </div>
                     </div>
                 </div>

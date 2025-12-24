@@ -27,6 +27,8 @@ class User extends Authenticatable
         'email_verified',
         'verification_token',
         'reset_token',
+        'reset_requested_at',
+        'reset_token_created_at',
         'status',
         'ban_reason',
         'role',
@@ -57,6 +59,8 @@ class User extends Authenticatable
             'last_login' => 'datetime',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
+            'reset_requested_at' => 'datetime',
+            'reset_token_created_at' => 'datetime',
         ];
     }
 
@@ -352,7 +356,9 @@ class User extends Authenticatable
      */
     public function requestPasswordReset(): bool
     {
-        $this->reset_token = bin2hex(random_bytes(32));
+        $this->reset_requested_at = now();
+        $this->reset_token = null;
+        $this->reset_token_created_at = null;
         return $this->save();
     }
 
@@ -362,6 +368,8 @@ class User extends Authenticatable
     public function clearPasswordResetRequest(): bool
     {
         $this->reset_token = null;
+        $this->reset_requested_at = null;
+        $this->reset_token_created_at = null;
         return $this->save();
     }
 
@@ -370,6 +378,8 @@ class User extends Authenticatable
      */
     public static function getPendingResetRequests()
     {
-        return static::whereNotNull('reset_token')->get();
+        return static::whereNotNull('reset_requested_at')
+            ->whereNull('reset_token')
+            ->get();
     }
 }

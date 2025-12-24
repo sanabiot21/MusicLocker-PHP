@@ -163,6 +163,10 @@ if (!function_exists('route_url')) {
             'music.edit' => '/music/edit',
             'spotify.auth' => '/api/spotify/auth',
             'spotify.callback' => '/api/spotify/callback',
+            'admin.dashboard' => '/admin',
+            'admin.users' => '/admin/users',
+            'admin.system' => '/admin/system',
+            'admin.settings' => '/admin/settings',
         ];
         
         $path = $routes[$name] ?? $name;

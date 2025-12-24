@@ -39,14 +39,14 @@
             </div>
         </div>
 
-        <!-- Inactive Users -->
+        <!-- Suspended Users -->
         <div class="col-lg-3 col-md-6">
             <div class="feature-card stat-card-colored stat-card-yellow">
                 <div class="mb-3">
                     <i class="bi bi-person-x display-4" style="color: #feca57;"></i>
                 </div>
                 <h2 class="stat-value stat-value-yellow mb-1">{{ formatNumber($stats['inactive_users']) }}</h2>
-                <p class="stat-label mb-0">Inactive Users</p>
+                <p class="stat-label mb-0">Suspended Users</p>
             </div>
         </div>
 
@@ -78,7 +78,8 @@
                     <select name="status" class="form-select form-control-dark">
                         <option value="">All Status</option>
                         <option value="active" {{ $status === 'active' ? 'selected' : '' }}>Active</option>
-                        <option value="inactive" {{ $status === 'inactive' ? 'selected' : '' }}>Banned</option>
+                        <option value="suspended" {{ $status === 'suspended' ? 'selected' : '' }}>Suspended</option>
+                        <option value="inactive" {{ $status === 'inactive' ? 'selected' : '' }}>Inactive (legacy)</option>
                     </select>
                 </div>
                 <div class="col-md-4">
@@ -129,7 +130,7 @@
                         <td>
                             <span class="badge badge-with-icon bg-{{ $user->status === 'active' ? 'success' : 'warning' }}">
                                 <i class="bi bi-{{ $user->status === 'active' ? 'check-circle' : 'pause-circle' }}"></i>
-                                {{ $user->status === 'active' ? 'Active' : 'Inactive' }}
+                                {{ $user->status === 'active' ? 'Active' : 'Suspended' }}
                             </span>
                         </td>
                         <td>

@@ -19,7 +19,7 @@
                 <div class="d-flex gap-2 align-items-center flex-wrap">
                     <span class="badge badge-with-icon bg-{{ $user->status === 'active' ? 'success' : 'warning' }}">
                         <i class="bi bi-{{ $user->status === 'active' ? 'check-circle' : 'pause-circle' }}"></i>
-                        {{ $user->status === 'active' ? 'Active' : 'Inactive' }}
+                        {{ $user->status === 'active' ? 'Active' : 'Suspended' }}
                     </span>
                     <span class="badge badge-with-icon bg-{{ $user->role === 'admin' ? 'primary' : 'info' }}">
                         <i class="bi bi-{{ $user->role === 'admin' ? 'shield-check' : 'person' }}"></i>
@@ -106,11 +106,26 @@
                         <div class="info-display-value">{{ $user->last_login ? formatDateTime($user->last_login) : 'Never' }}</div>
                     </div>
                 </div>
-                @if($user->status !== 'active' && $user->ban_reason)
+                @if($user->status !== 'active' && $user->ban_reasons)
                 <div class="col-12">
                     <div class="info-display-item">
                         <div class="info-display-label">Ban Reason</div>
                         <div class="info-display-value text-warning">{{ $user->ban_reason }}</div>
+                    </div>
+                </div>
+                @endif
+                @if($user->reset_requested_at && !$user->reset_token)
+                <div class="col-12">
+                    <div class="info-display-item">
+                        <div class="info-display-label">Password Reset</div>
+                        <div class="info-display-value text-info">Pending admin approval since {{ formatDateTime($user->reset_requested_at) }}</div>
+                    </div>
+                </div>
+                @elseif($user->reset_token)
+                <div class="col-12">
+                    <div class="info-display-item">
+                        <div class="info-display-label">Password Reset</div>
+                        <div class="info-display-value text-success">Approved token issued {{ formatDateTime($user->reset_token_created_at) }}</div>
                     </div>
                 </div>
                 @endif
@@ -227,7 +242,7 @@
                             <label for="edit_status" class="form-label">Status</label>
                             <select class="form-control form-control-dark" id="edit_status" name="status" required>
                                 <option value="active" {{ $user->status === 'active' ? 'selected' : '' }}>Active</option>
-                                <option value="inactive" {{ $user->status === 'inactive' ? 'selected' : '' }}>Banned</option>
+                                <option value="inactive" {{ $user->status === 'inactive' ? 'selected' : '' }}>Suspended</option>
                             </select>
                         </div>
 

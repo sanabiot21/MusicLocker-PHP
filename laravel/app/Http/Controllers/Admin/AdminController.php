@@ -10,6 +10,7 @@ use App\Models\Tag;
 use App\Models\ActivityLog;
 use App\Models\AdminNote;
 use App\Models\SystemSetting;
+use App\Models\AccountRecoveryRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -58,8 +59,14 @@ class AdminController extends Controller
             'popular_tag' => User::getPopularTag(),
         ];
 
-        // Get pending password reset requests
+        // Get pending password reset requests (requests waiting for approval)
         $pendingResets = User::getPendingResetRequests();
+
+        // Account recovery (ban appeal) requests
+        $pendingRecoveries = AccountRecoveryRequest::with('user')
+            ->where('status', 'pending')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         // Get recent activity (last 10) with formatted data
         $recentActivity = ActivityLog::with('user')
@@ -76,6 +83,7 @@ class AdminController extends Controller
             'userStats' => $userStats,
             'weeklyStats' => $weeklyStats,
             'pendingResets' => $pendingResets,
+            'pendingRecoveries' => $pendingRecoveries,
             'recentActivity' => $recentActivity
         ]);
     }
@@ -125,7 +133,7 @@ class AdminController extends Controller
         $stats = [
             'total_users' => User::count(),
             'active_users' => User::where('status', 'active')->count(),
-            'inactive_users' => User::where('status', 'inactive')->count(),
+            'inactive_users' => User::whereIn('status', ['inactive', 'suspended'])->count(),
             'total_songs' => MusicEntry::count(),
         ];
 
@@ -204,7 +212,7 @@ class AdminController extends Controller
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
             'email' => 'required|email|max:255',
-            'status' => 'required|in:active,inactive',
+            'status' => 'required|in:active,inactive,suspended',
             'ban_reason' => 'nullable|string|max:1000',
             'role' => 'required|in:user,admin'
         ]);
@@ -285,7 +293,38 @@ class AdminController extends Controller
 
         $user = User::findOrFail($validated['user_id']);
 
-        if (!$user->reset_token) {
+        if (!$user->reset_requested_at) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No pending reset request for this user'
+            ], 400);
+        }
+
+        // Generate an approval token the user can use to reset their password
+        $user->reset_token = bin2hex(random_bytes(32));
+        $user->reset_token_created_at = now();
+        $user->save();
+
+        log_activity('approve', 'password_reset', $user->id, "Approved password reset for: {$user->full_name}");
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password reset request approved'
+        ]);
+    }
+
+    /**
+     * Reject a user's password reset request (clears pending request)
+     */
+    public function rejectResetRequest(Request $request)
+    {
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id'
+        ]);
+
+        $user = User::findOrFail($validated['user_id']);
+
+        if (!$user->reset_requested_at) {
             return response()->json([
                 'success' => false,
                 'message' => 'No pending reset request for this user'
@@ -294,11 +333,11 @@ class AdminController extends Controller
 
         $user->clearPasswordResetRequest();
 
-        log_activity('approve', 'password_reset', $user->id, "Approved password reset for: {$user->full_name}");
+        log_activity('update', 'password_reset', $user->id, "Rejected password reset for: {$user->full_name}");
 
         return response()->json([
             'success' => true,
-            'message' => 'Password reset request approved'
+            'message' => 'Password reset request rejected'
         ]);
     }
 
@@ -430,7 +469,7 @@ class AdminController extends Controller
      */
     public function settings()
     {
-        $settings = SystemSetting::pluck('value', 'key')->toArray();
+        $settings = SystemSetting::pluck('setting_value', 'setting_key')->toArray();
 
         return view('admin.settings', [
             'settings' => $settings
@@ -451,10 +490,7 @@ class AdminController extends Controller
         ]);
 
         foreach ($validated as $key => $value) {
-            SystemSetting::updateOrCreate(
-                ['key' => $key],
-                ['value' => $value]
-            );
+            SystemSetting::set($key, $value);
         }
 
         log_activity('update', 'settings', 0, 'Updated system settings');
@@ -462,6 +498,65 @@ class AdminController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Settings updated successfully'
+        ]);
+    }
+
+    /**
+     * List account recovery (ban appeal) requests
+     */
+    public function recoveryRequests()
+    {
+        $requests = AccountRecoveryRequest::with(['user', 'admin'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        return view('admin.recovery-requests', [
+            'requests' => $requests
+        ]);
+    }
+
+    /**
+     * Resolve a recovery request (approve = reinstate, reject = keep banned)
+     */
+    public function resolveRecoveryRequest(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'action' => 'required|in:approve,reject',
+            'admin_note' => 'nullable|string|max:1000'
+        ]);
+
+        $recovery = AccountRecoveryRequest::with('user')->findOrFail($id);
+
+        if ($recovery->status !== 'pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'This request has already been processed.'
+            ], 400);
+        }
+
+        $recovery->status = $validated['action'] === 'approve' ? 'approved' : 'rejected';
+        $recovery->admin_id = auth()->id();
+        $recovery->admin_note = $validated['admin_note'] ?? null;
+        $recovery->resolved_at = now();
+        $recovery->save();
+
+        if ($validated['action'] === 'approve' && $recovery->user) {
+            $recovery->user->update([
+                'status' => 'active',
+                'ban_reason' => null
+            ]);
+        }
+
+        log_activity(
+            $validated['action'] === 'approve' ? 'approve' : 'update',
+            'account_recovery',
+            $recovery->user_id,
+            ucfirst($validated['action']) . "d account recovery request for: {$recovery->user?->full_name}"
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Request updated successfully'
         ]);
     }
 }

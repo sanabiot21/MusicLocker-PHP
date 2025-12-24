@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Mail\AccountRecoveryRequest;
+use App\Models\AccountRecoveryRequest as RecoveryModel;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -52,6 +53,23 @@ class AccountRecoveryController extends Controller
                 ->withInput()
                 ->with('error', 'Your account is active. Please try logging in.');
         }
+
+        $existingPending = RecoveryModel::where('user_id', $user->id)
+            ->where('status', 'pending')
+            ->first();
+
+        if ($existingPending) {
+            return redirect()->back()
+                ->withInput()
+                ->with('info', 'You already have a recovery request pending review.');
+        }
+
+        // Create a recovery request record for admin review
+        $recovery = RecoveryModel::create([
+            'user_id' => $user->id,
+            'message' => $validated['message'],
+            'status' => 'pending',
+        ]);
 
         // Get admin email (from config or first admin user)
         $adminUsers = User::admins()->get();

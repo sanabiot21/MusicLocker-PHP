@@ -22,7 +22,6 @@
                         <!-- Approved: Show password reset form -->
                         <form id="resetForm" method="POST" action="{{ route('password.update') }}" novalidate>
                             @csrf
-                            <input type="hidden" name="user_id" value="{{ $approvedRequest['user_id'] }}">
                     @else
                         <!-- Not approved: Show email form -->
                         <form id="forgotForm" method="POST" action="{{ route('password.email') }}" novalidate>
@@ -39,7 +38,7 @@
                                 </label>
                                 <input type="password"
                                        class="form-control form-control-dark"
-                                       id="new_password" name="new_password"
+                                       id="new_password" name="password"
                                        placeholder="Enter new password" required minlength="8">
                                 <div class="form-text text-muted small mt-2">
                                     <i class="bi bi-info-circle me-1"></i>Minimum 8 characters
@@ -53,12 +52,15 @@
                                 </label>
                                 <input type="password"
                                        class="form-control form-control-dark"
-                                       id="confirm_password" name="confirm_password"
+                                       id="confirm_password" name="password_confirmation"
                                        placeholder="Confirm new password" required minlength="8">
                             </div>
 
+                            <input type="hidden" name="token" value="{{ $approvedRequest['token'] ?? '' }}">
+                            <input type="hidden" name="email" value="{{ $approvedRequest['email'] ?? '' }}">
+
                             <!-- Submit Button -->
-                            <button type="submit" class="btn btn-glow w-100 py-3 mb-3">
+                            <button type="submit" formaction="{{ route('password.update') }}" class="btn btn-glow w-100 py-3 mb-3">
                                 <i class="bi bi-key me-2"></i>Reset Password
                             </button>
                         @else
@@ -76,6 +78,12 @@
                                     <i class="bi bi-info-circle me-1"></i>Enter email to check approval status or submit request
                                 </div>
                             </div>
+
+                            @if(isset($pendingMessage) && $pendingMessage)
+                                <div class="alert alert-info mb-3">
+                                    <i class="bi bi-hourglass-split me-2"></i>{{ $pendingMessage }}
+                                </div>
+                            @endif
 
                             <!-- Submit Button -->
                             <button type="submit" class="btn btn-glow w-100 py-3 mb-3">
@@ -96,9 +104,9 @@
                     <div class="text-center mt-4 pt-4 border-top" style="border-color: #333 !important;">
                         <div class="text-muted small">
                             <p class="mb-2"><strong>Having trouble?</strong></p>
-                            <p class="mb-1">• Make sure you entered the correct email address</p>
-                            <p class="mb-1">• Check your spam/junk folder for the reset email</p>
-                            <p class="mb-3">• The reset link expires after 1 hour for security</p>
+                            <p class="mb-1">- Make sure you entered the correct email address</p>
+                            <p class="mb-1">- Check your spam/junk folder for the reset email</p>
+                            <p class="mb-3">- The reset link expires after 1 hour for security</p>
                             <p>
                                 Don't have an account?
                                 <a href="{{ route('register') }}" class="text-decoration-none"
@@ -116,7 +124,7 @@
 @push('scripts')
 <script>
     // Form validation and submission
-    document.getElementById('forgotForm').addEventListener('submit', function(event) {
+    document.getElementById('forgotForm')?.addEventListener('submit', function(event) {
         const form = this;
         const email = document.getElementById('email').value.trim();
 
@@ -148,7 +156,7 @@
     });
 
     // Remove validation classes on input
-    document.getElementById('email').addEventListener('input', function() {
+    document.getElementById('email')?.addEventListener('input', function() {
         this.classList.remove('is-invalid');
     });
 </script>

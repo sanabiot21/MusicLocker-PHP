@@ -26,6 +26,9 @@
                     <a href="{{ route('admin.settings') }}" class="btn btn-outline-glow">
                         <i class="bi bi-gear me-1"></i>Settings
                     </a>
+                    <a href="{{ route('admin.recovery.requests') }}" class="btn btn-outline-glow">
+                        <i class="bi bi-shield-exclamation me-1"></i>Recovery
+                    </a>
                 </div>
             </div>
         </div>
@@ -178,11 +181,65 @@
                             </div>
                         </td>
                         <td>{{ $user->email }}</td>
-                        <td>{{ formatDateTime($user->updated_at) }}</td>
-                        <td>
+                        <td>{{ formatDateTime($user->reset_requested_at ?? $user->updated_at) }}</td>
+                        <td class="d-flex gap-2">
                             <a href="{{ route('admin.users.detail', $user->id) }}" class="btn btn-sm btn-glow">
                                 <i class="bi bi-eye me-1"></i>View User
                             </a>
+                            <button class="btn btn-sm btn-success" onclick="approveReset({{ $user->id }})">
+                                <i class="bi bi-check2-circle me-1"></i>Approve
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="rejectReset({{ $user->id }})">
+                                <i class="bi bi-x-circle me-1"></i>Reject
+                            </button>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @endif
+
+    <!-- Pending Recovery Requests -->
+    @if(isset($pendingRecoveries) && $pendingRecoveries->count() > 0)
+    <div class="feature-card mb-4">
+        <div class="card-header mb-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <h3 class="mb-0">
+                    <i class="bi bi-envelope-exclamation me-2" style="color: var(--accent-purple);"></i>Pending Recovery Requests
+                </h3>
+                <span class="badge bg-info text-dark">{{ $pendingRecoveries->count() }}</span>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Message</th>
+                        <th>Submitted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($pendingRecoveries as $request)
+                    <tr>
+                        <td>{{ $request->user->full_name ?? 'Unknown User' }}</td>
+                        <td>{{ $request->user->email ?? 'N/A' }}</td>
+                        <td style="max-width: 320px;">{{ \Illuminate\Support\Str::limit($request->message, 120) }}</td>
+                        <td>{{ formatDateTime($request->created_at) }}</td>
+                        <td class="d-flex gap-2">
+                            <a href="{{ route('admin.users.detail', $request->user_id) }}" class="btn btn-sm btn-outline-glow">
+                                <i class="bi bi-eye me-1"></i>View
+                            </a>
+                            <button class="btn btn-sm btn-success" onclick="resolveRecovery({{ $request->id }}, 'approve')">
+                                <i class="bi bi-check2-circle me-1"></i>Approve
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="resolveRecovery({{ $request->id }}, 'reject')">
+                                <i class="bi bi-x-circle me-1"></i>Reject
+                            </button>
                         </td>
                     </tr>
                     @endforeach
@@ -412,5 +469,89 @@
         }
     }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+function resolveRecovery(id, action) {
+    const message = action === 'reject'
+        ? 'Reject this recovery request?'
+        : 'Approve and restore this account?';
+
+    if (!confirm(message)) {
+        return;
+    }
+
+    fetch(`/admin/recovery-requests/${id}`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').content,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ action })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            MusicLocker.showToast(data.message || 'Request updated', 'success');
+            setTimeout(() => window.location.reload(), 800);
+        } else {
+            MusicLocker.showToast(data.message || 'Unable to update request', 'danger');
+        }
+    })
+    .catch(() => {
+        MusicLocker.showToast('Unable to update request', 'danger');
+    });
+}
+
+function approveReset(userId) {
+    fetch('/admin/reset-requests/approve', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ user_id: userId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            MusicLocker.showToast(data.message || 'Request approved', 'success');
+            setTimeout(() => window.location.reload(), 800);
+        } else {
+            MusicLocker.showToast(data.message || 'Unable to approve request', 'danger');
+        }
+    })
+    .catch(() => MusicLocker.showToast('Unable to approve request', 'danger'));
+}
+
+function rejectReset(userId) {
+    if (!confirm('Reject this password reset request?')) {
+        return;
+    }
+
+    fetch('/admin/reset-requests/reject', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ user_id: userId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            MusicLocker.showToast(data.message || 'Request rejected', 'success');
+            setTimeout(() => window.location.reload(), 800);
+        } else {
+            MusicLocker.showToast(data.message || 'Unable to reject request', 'danger');
+        }
+    })
+    .catch(() => MusicLocker.showToast('Unable to reject request', 'danger'));
+}
+</script>
 @endpush
 @endsection

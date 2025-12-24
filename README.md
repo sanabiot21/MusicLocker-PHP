@@ -61,7 +61,7 @@ This project demonstrates two complete, production-ready implementations of the 
 - **PDO Database Layer:** Direct database access with prepared statements
 - **Repository Pattern:** Interface-based data access ([/src/Repositories](src/Repositories/))
 - **Security-First:** Custom CSRF protection, session management, and input validation
-- **Database:** MySQL 8.0+ with ACID compliance
+- **Database:** PostgreSQL 13+ (Supabase) with ACID compliance
 - **Deployment:** Docker with Nginx + PHP-FPM on Render.com
 
 **Architecture Layers:**
@@ -138,7 +138,7 @@ Browser → Nginx → PHP-FPM → /laravel/public/index.php (Laravel bootstrap)
 |--------|-----------------|--------------|
 | **Routing** | Manual switch/case | Laravel routes with middleware |
 | **Database** | PDO with prepared statements | Eloquent ORM |
-| **Database Type** | MySQL 8.0+ | PostgreSQL 13+ (Supabase) |
+| **Database Type** | PostgreSQL 13+ (Supabase) | PostgreSQL 13+ (Supabase) |
 | **Templates** | Raw PHP views | Blade template engine |
 | **Authentication** | Custom session management | Laravel Auth + Sanctum |
 | **API** | AJAX endpoints in controllers | RESTful API with resource controllers |
@@ -198,7 +198,7 @@ Browser → Nginx → PHP-FPM → /laravel/public/index.php (Laravel bootstrap)
 
 ### Backend
 - **PHP 8.2+** - Core language
-- **MySQL 8.0** - Database with ACID compliance
+- **PostgreSQL 13+** - Database with ACID compliance
 - **Composer** - Dependency management
 
 ### Frontend
@@ -224,7 +224,7 @@ Browser → Nginx → PHP-FPM → /laravel/public/index.php (Laravel bootstrap)
 
 ### Server Requirements
 - PHP 8.2 or higher
-- MySQL 8.0 or higher
+- PostgreSQL 13 or higher
 - Apache/Nginx web server
 - Composer
 
@@ -234,7 +234,7 @@ Browser → Nginx → PHP-FPM → /laravel/public/index.php (Laravel bootstrap)
 - mbstring
 - openssl
 - pdo
-- pdo_mysql
+- pdo_pgsql
 
 ### Browser Requirements
 - Chrome 90+
@@ -261,16 +261,20 @@ composer install
 
 #### 3. Database Setup
 
-Create a MySQL database:
-
-```sql
-CREATE DATABASE music_locker;
-```
-
-Import the database schema:
+Create a PostgreSQL database (or use Supabase):
 
 ```bash
-mysql -u your_username -p music_locker < database/music_locker.sql
+# Using Supabase (recommended)
+# 1. Create a new project at supabase.com
+# 2. Go to SQL Editor
+# 3. Import and run the contents of database/schema.sql
+```
+
+If using a local PostgreSQL instance:
+
+```bash
+createdb music_locker
+psql -d music_locker -f database/schema.sql
 ```
 
 #### 4. Environment Configuration
@@ -284,12 +288,14 @@ cp .env .env.local
 Edit `.env` with your configuration:
 
 ```env
-# Database Configuration
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=music_locker
-DB_USER=your_username
+# Database Configuration (PostgreSQL)
+DB_CONNECTION=pgsql
+DB_HOST=aws-0-ap-southeast-1.pooler.supabase.com
+DB_PORT=6543
+DB_NAME=postgres
+DB_USER=postgres.your-project-ref
 DB_PASS=your_password
+DB_SSLMODE=require
 
 # Application Settings
 APP_NAME="Music Locker"
@@ -386,7 +392,7 @@ For detailed Laravel setup instructions, see [docs/LARAVEL_SETUP.md](docs/LARAVE
 
 ### Database Configuration
 
-The application uses PDO for database connections with ACID compliance. Configure your database credentials in the `.env` file.
+The application uses PDO for database connections with ACID compliance. Configure your PostgreSQL credentials in the `.env` file as shown in the Installation section. The application is optimized for Supabase's connection pooler.
 
 ## Usage
 

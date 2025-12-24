@@ -30,6 +30,13 @@
                         </div>
                     @endif
 
+                    @if(session('info'))
+                        <div class="alert alert-info alert-dismissible fade show mb-4">
+                            <i class="bi bi-info-circle me-2"></i>{{ session('info') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
                     <form method="POST" action="{{ route('auth.account-recovery.submit') }}" id="recoveryForm">
                         @csrf
 
@@ -142,5 +149,7 @@
     });
 </script>
 @endpush
+
+
 
 

@@ -243,7 +243,7 @@ try {
             break;
             
         case $requestUri === '/assets/css/dark-techno-theme.css':
-            serveStaticFile(ROOT_PATH . '/music-locker-bootstrap/assets/css/dark-techno-theme.css', 'text/css');
+            serveStaticFile(PUBLIC_PATH . '/assets/css/dark-techno-theme.css', 'text/css');
             break;
             
         default:

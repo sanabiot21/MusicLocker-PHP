@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\Validation\ValidationException;
+use App\Models\User;
 
 /**
  * Password Reset Controller
@@ -18,9 +18,29 @@ class PasswordResetController extends Controller
     /**
      * Show the forgot password form
      */
-    public function showForgotForm()
+    public function showForgotForm(Request $request)
     {
-        return view('auth.forgot-password');
+        $approvedRequest = null;
+        $pendingMessage = null;
+
+        if ($request->filled('email')) {
+            $user = User::where('email', $request->email)->first();
+
+            if ($user && $user->reset_token) {
+                $approvedRequest = [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'token' => $user->reset_token,
+                ];
+            } elseif ($user && $user->reset_requested_at) {
+                $pendingMessage = 'Your request is awaiting admin approval. We will notify you once it is approved.';
+            }
+        }
+
+        return view('auth.forgot-password', [
+            'approvedRequest' => $approvedRequest,
+            'pendingMessage' => $pendingMessage
+        ]);
     }
 
     /**
@@ -32,17 +52,28 @@ class PasswordResetController extends Controller
             'email' => 'required|email',
         ]);
 
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        $user = User::where('email', $request->email)->first();
 
-        if ($status === Password::RESET_LINK_SENT) {
-            return back()->with('success', 'Password reset link sent to your email!');
+        if (!$user) {
+            throw ValidationException::withMessages([
+                'email' => ['We could not find a user with that email address.'],
+            ]);
         }
 
-        throw ValidationException::withMessages([
-            'email' => [trans($status)],
-        ]);
+        // If already approved, direct the user to the reset form
+        if ($user->reset_token) {
+            return redirect()->route('password.reset', ['token' => $user->reset_token, 'email' => $user->email])
+                ->with('info', 'Your reset was already approved. Set your new password below.');
+        }
+
+        // If a request is pending, avoid duplicate submissions
+        if ($user->reset_requested_at && !$user->reset_token) {
+            return back()->with('info', 'A reset request is already pending admin approval.');
+        }
+
+        $user->requestPasswordReset();
+
+        return back()->with('success', 'Request submitted. An administrator will approve your reset.');
     }
 
     /**
@@ -50,9 +81,16 @@ class PasswordResetController extends Controller
      */
     public function showResetForm(Request $request, $token)
     {
+        $user = User::where('reset_token', $token)->first();
+
+        if (!$user || !$user->reset_token) {
+            return redirect()->route('password.request')
+                ->with('error', 'Invalid or expired reset token.');
+        }
+
         return view('auth.reset-password', [
             'token' => $token,
-            'email' => $request->email
+            'email' => $request->email ?? $user->email
         ]);
     }
 
@@ -67,22 +105,23 @@ class PasswordResetController extends Controller
             'password' => ['required', 'confirmed', PasswordRule::min(8)],
         ]);
 
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
-                $user->forceFill([
-                    'password' => Hash::make($password)
-                ])->save();
-            }
-        );
+        $user = User::where('email', $request->email)
+            ->where('reset_token', $request->token)
+            ->first();
 
-        if ($status === Password::PASSWORD_RESET) {
-            return redirect()->route('login')
-                ->with('success', 'Password reset successfully! You can now login.');
+        if (!$user) {
+            throw ValidationException::withMessages([
+                'email' => ['Invalid reset token or email.'],
+            ]);
         }
 
-        throw ValidationException::withMessages([
-            'email' => [trans($status)],
-        ]);
+        $user->forceFill([
+            'password' => Hash::make($request->password)
+        ])->save();
+
+        $user->clearPasswordResetRequest();
+
+        return redirect()->route('login')
+            ->with('success', 'Password reset successfully! You can now login.');
     }
 }

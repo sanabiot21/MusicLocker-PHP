@@ -66,16 +66,29 @@
                     @auth
                         <!-- Authenticated Navigation -->
                         @if(auth()->user()->role === 'admin')
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.*') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
-                                <i class="bi bi-shield-check me-1"></i>Admin Panel
-                                @php
-                                    $pendingResets = \App\Models\User::where('status', 'pending_reset')->count();
-                                @endphp
-                                @if($pendingResets > 0)
-                                <span class="badge rounded-pill bg-danger ms-1">{{ $pendingResets }}</span>
+                        <li class="nav-item dropdown">
+                            @php
+                                $pendingResets = \App\Models\User::whereNotNull('reset_requested_at')->whereNull('reset_token')->count();
+                                $pendingRecoveries = \App\Models\AccountRecoveryRequest::where('status', 'pending')->count();
+                            @endphp
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('admin.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-shield-check me-1"></i>Admin
+                                @if($pendingResets + $pendingRecoveries > 0)
+                                    <span class="badge rounded-pill bg-danger ms-1">{{ $pendingResets + $pendingRecoveries }}</span>
                                 @endif
                             </a>
+                            <ul class="dropdown-menu dropdown-menu-dark">
+                                <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                                <li><a class="dropdown-item" href="{{ route('admin.users') }}"><i class="bi bi-people me-2"></i>Users</a></li>
+                                <li><a class="dropdown-item" href="{{ route('admin.recovery.requests') }}">
+                                    <i class="bi bi-shield-exclamation me-2"></i>Recovery
+                                    @if($pendingRecoveries > 0)
+                                        <span class="badge bg-danger ms-2">{{ $pendingRecoveries }}</span>
+                                    @endif
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ route('admin.settings') }}"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                                <li><a class="dropdown-item" href="{{ route('admin.system.health') }}"><i class="bi bi-cpu me-2"></i>System Health</a></li>
+                            </ul>
                         </li>
                         @endif
                         <li class="nav-item">

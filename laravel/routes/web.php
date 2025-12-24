@@ -108,7 +108,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Password Reset Approval
     Route::post('/reset-requests/approve', [AdminController::class, 'approveResetRequest'])->name('reset.approve');
+    Route::post('/reset-requests/reject', [AdminController::class, 'rejectResetRequest'])->name('reset.reject');
     Route::post('/users/{id}/reset-password', [AdminController::class, 'resetUserPassword'])->name('users.reset-password');
+    Route::get('/recovery-requests', [AdminController::class, 'recoveryRequests'])->name('recovery.requests');
+    Route::post('/recovery-requests/{id}', [AdminController::class, 'resolveRecoveryRequest'])->name('recovery.requests.resolve');
 
     // System Management
     Route::get('/system-health', [AdminController::class, 'systemHealth'])->name('system.health');

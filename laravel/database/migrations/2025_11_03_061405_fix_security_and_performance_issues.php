@@ -13,21 +13,31 @@ return new class extends Migration
         // 1. Remove duplicate email index (keep idx_users_email, drop idx_email)
         DB::statement('DROP INDEX IF EXISTS idx_email');
 
-        // 2. Add primary key to password_reset_tokens table
-        // First, ensure no duplicate rows exist
-        DB::statement('
-            DELETE FROM password_reset_tokens a
-            USING password_reset_tokens b
-            WHERE a.ctid < b.ctid
-            AND a.email = b.email
-            AND a.token = b.token
-        ');
+        // 2. Add primary key to password_reset_tokens table (if not exists)
+        // First, check if primary key already exists
+        $hasPrimaryKey = DB::select("
+            SELECT constraint_name 
+            FROM information_schema.table_constraints 
+            WHERE table_name = 'password_reset_tokens' 
+            AND constraint_type = 'PRIMARY KEY'
+        ");
         
-        // Add composite primary key
-        DB::statement('
-            ALTER TABLE password_reset_tokens
-            ADD PRIMARY KEY (email, token)
-        ');
+        if (empty($hasPrimaryKey)) {
+            // Ensure no duplicate rows exist
+            DB::statement('
+                DELETE FROM password_reset_tokens a
+                USING password_reset_tokens b
+                WHERE a.ctid < b.ctid
+                AND a.email = b.email
+                AND a.token = b.token
+            ');
+            
+            // Add composite primary key
+            DB::statement('
+                ALTER TABLE password_reset_tokens
+                ADD PRIMARY KEY (email, token)
+            ');
+        }
 
         // 3. Recreate user_music_stats view without SECURITY DEFINER
         DB::statement('DROP VIEW IF EXISTS user_music_stats');
